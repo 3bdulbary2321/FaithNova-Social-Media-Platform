@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import MainLayout from './layouts/MainLayout';
-import HomeFeed from './pages/HomeFeed';
+import Home from './pages/Home';
 
 export default function App() {
   return (
@@ -12,12 +12,12 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<MainLayout />}>
-              <Route index element={<HomeFeed />} />
-              <Route path="topics/:slug" element={<HomeFeed />} />
-              <Route path="saved" element={<HomeFeed />} />
-              <Route path="peer-review" element={<HomeFeed />} />
-              <Route path="moderation" element={<HomeFeed />} />
-              <Route path="*" element={<HomeFeed />} />
+              <Route index element={<Home />} />
+              <Route path="topics/:slug" element={<Home />} />
+              <Route path="saved" element={<Home />} />
+              <Route path="peer-review" element={<Home />} />
+              <Route path="moderation" element={<Home />} />
+              <Route path="*" element={<Home />} />
             </Route>
           </Routes>
         </BrowserRouter>
