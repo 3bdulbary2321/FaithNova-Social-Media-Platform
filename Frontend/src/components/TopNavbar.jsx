@@ -360,11 +360,19 @@ export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
 
                   {/* Menu Links */}
                   <div className="space-y-0.5 py-1 text-xs">
-                    <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70 transition-colors">
+                    <Link 
+                      to="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70 transition-colors"
+                    >
                       <User className="w-4 h-4 text-indigo-500" />
                       <span>Academic Profile & Treatises</span>
-                    </button>
-                    <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70 transition-colors">
+                    </Link>
+                    <Link
+                      to="/saved"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70 transition-colors"
+                    >
                       <div className="flex items-center gap-2.5">
                         <Bookmark className="w-4 h-4 text-amber-500" />
                         <span>Saved Syntheses</span>
@@ -372,22 +380,26 @@ export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
                       <span className="px-1.5 py-0.5 text-[10px] rounded bg-slate-200 dark:bg-slate-800 font-medium">
                         {user.savedPostsCount}
                       </span>
-                    </button>
-                    <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70 transition-colors">
+                    </Link>
+                    <Link 
+                      to="/moderation"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70 transition-colors"
+                    >
                       <GraduationCap className="w-4 h-4 text-emerald-500" />
-                      <span>Fellowship & Grant Status</span>
-                    </button>
-                    <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70 transition-colors">
-                      <Settings className="w-4 h-4 text-slate-400" />
-                      <span>Account & Privacy Preferences</span>
-                    </button>
+                      <span>Moderation & Fellow Board</span>
+                    </Link>
                   </div>
 
                   <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800/80">
-                    <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors text-xs font-medium">
+                    <Link
+                      to="/auth"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors text-xs font-medium"
+                    >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
-                    </button>
+                    </Link>
                   </div>
                 </div>
               )}

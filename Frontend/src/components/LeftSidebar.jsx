@@ -184,7 +184,17 @@ export default function LeftSidebar({ onItemClick }) {
       </div>
 
       {/* Mini Scholar Profile Card at Bottom */}
-      <div className="mt-auto p-3 rounded-xl border flex items-center gap-3 bg-white/70 border-slate-200 dark:bg-slate-900/60 dark:border-slate-800">
+      <NavLink
+        to="/profile"
+        onClick={onItemClick}
+        className={({ isActive }) =>
+          `mt-auto p-3 rounded-xl border flex items-center gap-3 transition-colors ${
+            isActive
+              ? 'bg-indigo-50 border-indigo-300 dark:bg-indigo-950/40 dark:border-indigo-800'
+              : 'bg-white/70 border-slate-200 hover:border-slate-300 dark:bg-slate-900/60 dark:border-slate-800 dark:hover:border-slate-700'
+          }`
+        }
+      >
         <img
           src={user.avatar}
           alt={user.name}
@@ -204,7 +214,7 @@ export default function LeftSidebar({ onItemClick }) {
             {user.reputation}
           </span>
         </div>
-      </div>
+      </NavLink>
 
     </aside>
   );
