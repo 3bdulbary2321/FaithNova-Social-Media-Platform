@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
+import PostDetail from './pages/PostDetail';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Home />} />
+              <Route path="post/:postId" element={<PostDetail />} />
               <Route path="topics/:slug" element={<Home />} />
               <Route path="saved" element={<Home />} />
               <Route path="peer-review" element={<Home />} />

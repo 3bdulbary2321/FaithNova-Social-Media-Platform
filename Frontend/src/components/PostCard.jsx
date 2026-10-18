@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   BookOpen, 
   Atom, 
@@ -27,6 +28,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import ReportModal from './ReportModal';
 
 export default function PostCard({ post }) {
   const { user, bookmarkedIds, toggleBookmark } = useAuth();
@@ -196,7 +198,12 @@ export default function PostCard({ post }) {
       {/* 2. Post Title & Main Content */}
       <div className="px-4 sm:px-5">
         <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug font-heading">
-          {post.title}
+          <Link 
+            to={`/post/${post.id}`}
+            className="hover:text-indigo-600 dark:hover:text-amber-400 transition-colors"
+          >
+            {post.title}
+          </Link>
         </h2>
         <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
           {post.content}
@@ -571,53 +578,13 @@ export default function PostCard({ post }) {
       )}
 
       {/* Moderation Report Modal */}
-      {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl p-5 bg-white dark:bg-[#0c1222] border border-slate-200 dark:border-slate-800 shadow-2xl">
-            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 mb-2 font-bold text-sm">
-              <Flag className="w-4 h-4" />
-              <span>Report to Academic Moderation Board</span>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
-              FaithNova maintains high standards of peer review and civil academic dialogue. Please indicate the charter violation:
-            </p>
-            <div className="space-y-2 mb-4 text-xs">
-              {[
-                { id: 'citation', label: 'Unsubstantiated or fabricated scientific DOI citation' },
-                { id: 'exegesis', label: 'Linguistic distortion or out-of-context scriptural quote' },
-                { id: 'adhominem', label: 'Ad Hominem attack or religious/scientific harassment' },
-                { id: 'plagiarism', label: 'Uncredited scholarly thesis duplication' },
-              ].map(opt => (
-                <label key={opt.id} className="flex items-center gap-2.5 p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer text-slate-700 dark:text-slate-300">
-                  <input
-                    type="radio"
-                    name="reportReason"
-                    value={opt.id}
-                    checked={reportReason === opt.id}
-                    onChange={(e) => setReportReason(e.target.value)}
-                    className="text-indigo-600"
-                  />
-                  <span>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowReportModal(false)}
-                className="px-3 py-1.5 text-xs rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmReport}
-                className="px-4 py-1.5 text-xs rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-sm"
-              >
-                Submit Report
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetType="post"
+        targetTitle={post.title}
+        onSubmitReport={() => setIsReported(true)}
+      />
 
     </article>
   );

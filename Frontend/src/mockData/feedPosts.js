@@ -58,19 +58,65 @@ export const sampleFeedPosts = [
     comments: [
       {
         id: 'c-1',
-        author: 'Prof. Amina El-Khatib',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80',
-        role: 'Biophysicist',
-        time: '1 hour ago',
-        text: 'The semantic alignment on "ratq" is particularly compelling when contrasted with the steady-state model that dominated early 20th-century physics prior to Hubble’s discoveries.'
+        author: {
+          name: 'Prof. Amina El-Khatib',
+          avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80',
+          roleBadge: 'Biophysicist',
+          institution: 'University of Cambridge',
+          isVerified: true,
+        },
+        timestamp: '1 hour ago',
+        text: 'The semantic alignment on "ratq" is particularly compelling when contrasted with the steady-state model that dominated early 20th-century physics prior to Hubble’s discoveries. Have you considered contrasting this with the Lemaître primeval atom hypothesis?',
+        likes: 24,
+        isLiked: false,
+        replies: [
+          {
+            id: 'reply-1-1',
+            author: {
+              name: 'Dr. Marcus Vance',
+              avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
+              roleBadge: 'Astrophysicist',
+              institution: 'MIT Kavli Institute',
+              isVerified: true,
+            },
+            timestamp: '45 mins ago',
+            text: 'Indeed, Georges Lemaître himself—as both an ordained priest and a mathematical physicist—cautioned against conflating physical cosmogenesis with metaphysical creation ex nihilo, though the mathematical parallels remain philosophically potent.',
+            likes: 18,
+            isLiked: true,
+            replies: [
+              {
+                id: 'reply-1-1-1',
+                author: {
+                  name: 'Dr. Zayd Al-Ghazali',
+                  avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
+                  roleBadge: 'Theologian',
+                  institution: 'Oxford & Al-Azhar',
+                  isVerified: true,
+                },
+                timestamp: '20 mins ago',
+                text: 'Precisely. In classical Kalam, al-Ghazali distinguishes between "hudūth" (temporal origination) and the ontic contingency of the cosmos, which mirrors Lemaître\'s distinction between physical beginnings and metaphysical dependence.',
+                likes: 9,
+                isLiked: false,
+                replies: []
+              }
+            ]
+          }
+        ]
       },
       {
         id: 'c-2',
-        author: 'Dr. Zayd Al-Ghazali',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
-        role: 'Theologian',
-        time: '35 mins ago',
-        text: 'Fakhr al-Din al-Razi in Mafatih al-Ghayb also suggested this verse alludes to the continuous creation of distinct celestial and terrestrial orbits from a primordial undifferentiated state.'
+        author: {
+          name: 'Dr. Sarah Chen-Davies',
+          avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80',
+          roleBadge: 'Neuroscientist',
+          institution: 'Stanford University',
+          isVerified: true,
+        },
+        timestamp: '30 mins ago',
+        text: 'The epistemic humility emphasized in your thesis is exemplary. When we examine cosmological constants, separating empirical boundary limits from theological claims keeps both disciplines intellectually honest.',
+        likes: 15,
+        isLiked: false,
+        replies: []
       }
     ]
   },
