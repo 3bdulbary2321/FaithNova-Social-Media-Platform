@@ -1,0 +1,78 @@
+export const sampleFeedPosts = [
+  {
+    id: 'post-1',
+    author: {
+      name: 'Prof. Amina El-Khatib',
+      handle: '@amina_elkhatib',
+      title: 'Chair of Biophysics, Cambridge',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      badge: 'Senior Fellow',
+      isVerified: true,
+    },
+    publishedAt: '2 hours ago',
+    readingTime: '4 min read',
+    topic: 'Molecular Biology & Teleology',
+    tags: ['Thermodynamics', 'InformationTheory', 'SurahAr-Rum'],
+    title: 'Non-Equilibrium Thermodynamics and the Order of Living Systems: A Theological Perspective',
+    thesis: 'Living organisms circumvent dissipative entropy through localized open thermodynamic gradients. This biological self-organization mirrors classical descriptions of Divine sustenance (Qayyūmiyyah).',
+    content: 'When Schrödinger formulated "negative entropy" in 1944, he anticipated what modern biophysics confirms: living matter maintains internal coherence by constantly drawing order from its environment. In our recent preprint at the Cambridge Cavendish Laboratory, we examine the molecular motors of ATP synthase under non-equilibrium states. We argue that the mathematical precision of these proton pumps offers a profound teleological bridge to pre-modern metaphysical discourses on cosmic balance (Mīzān).',
+    citations: [
+      {
+        type: 'scientific',
+        source: 'Nature Reviews Molecular Cell Biology (2025)',
+        doi: '10.1038/s41580-025-00712-x',
+        title: 'Mechanisms of Proton-Driven Rotary Nanomotors in Mitochondrial Membranes',
+      },
+      {
+        type: 'religious',
+        source: 'The Holy Qur\'an — Surah Al-Mulk 67:3–4',
+        text: 'Who created seven heavens in layers. You do not see in the creation of the Most Merciful any inconsistency. So return your vision to the sky, do you see any break?',
+      },
+    ],
+    stats: {
+      endorsements: 142,
+      inquiries: 38,
+      citations: 19,
+      shares: 27,
+    },
+    isBookmarked: true,
+  },
+  {
+    id: 'post-2',
+    author: {
+      name: 'Dr. Marcus Vance',
+      handle: '@marcus_vance',
+      title: 'Theoretical Cosmologist, MIT',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      badge: 'Verified Researcher',
+      isVerified: true,
+    },
+    publishedAt: '5 hours ago',
+    readingTime: '6 min read',
+    topic: 'Astronomy & Cosmology',
+    tags: ['CosmicInflation', 'Singularity', 'SurahAdh-Dhariyat'],
+    title: 'The Hubble Tension, Metric Expansion of Space, and Early Hermeneutical Insights',
+    thesis: 'Recent James Webb Space Telescope (JWST) measurements of high-redshift galaxies reinforce cosmic expansion models that align intriguingly with classical commentaries on universal expansion.',
+    content: 'The tension between local distance ladder measurements (SH0ES) and cosmic microwave background predictions from Planck remains unresolved. Yet the core paradigm—that spacetime itself expands dynamically—remains unchallenged. In Surah Adh-Dhariyat 51:47, the participle "wa-innā lamūsi‘ūn" ("and indeed We are expanding [it]") has been historically analyzed by exegetes like Ibn Kathir and Al-Razi. We evaluate both the astrophysical data and the classical Arabic semantics.',
+    citations: [
+      {
+        type: 'scientific',
+        source: 'The Astrophysical Journal Letters (2025)',
+        doi: '10.3847/2041-8213/ad194b',
+        title: 'High-Redshift Supermassive Black Holes and Spacetime Metric Growth in Early Epochs',
+      },
+      {
+        type: 'religious',
+        source: 'The Holy Qur\'an — Surah Adh-Dhariyat 51:47',
+        text: 'And the heaven We constructed with strength, and indeed, We are [its] expander.',
+      },
+    ],
+    stats: {
+      endorsements: 289,
+      inquiries: 74,
+      citations: 45,
+      shares: 61,
+    },
+    isBookmarked: false,
+  },
+];

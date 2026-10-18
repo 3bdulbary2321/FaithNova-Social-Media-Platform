@@ -1,54 +1,103 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
 
-html, body {
+/* Base Body Styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #030712;
-  color: #f3f4f6;
   font-family: var(--font-sans);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Custom Scrollbar */
+/* Light & Dark Theme background defaults */
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.dark body {
+  background-color: #070b14;
+  color: #f1f5f9;
+}
+
+/* Subtle cosmic grid background */
+.cosmic-bg {
+  background-image: 
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(99, 102, 241, 0.08), transparent 70%),
+    radial-gradient(ellipse 40% 40% at 90% 20%, rgba(245, 158, 11, 0.05), transparent 60%);
+}
+
+html.dark .cosmic-bg {
+  background-image: 
+    radial-gradient(ellipse 70% 60% at 50% -10%, rgba(79, 70, 229, 0.18), transparent 75%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, rgba(217, 119, 6, 0.12), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 10% 30%, rgba(14, 165, 233, 0.08), transparent 60%);
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #030712;
+  background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #1f2937;
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.6);
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(17, 24, 39, 0.7);
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* Glassmorphism Panels */
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.glass-panel-dark {
+  background: rgba(11, 17, 32, 0.82);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(30, 41, 59, 0.8);
 }
 
-.glass-card {
-  background: rgba(17, 24, 39, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+/* Gold Glow Utility */
+.faith-glow {
+  box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.25);
 }
 
-.glass-card:hover {
-  background: rgba(31, 41, 55, 0.6);
-  border-color: rgba(99, 102, 241, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.15);
+.nova-glow {
+  box-shadow: 0 0 25px -4px rgba(99, 102, 241, 0.3);
+}
+
+/* Academic Serif citation styling */
+.citation-block {
+  border-left: 3px solid #f59e0b;
+  font-style: italic;
 }

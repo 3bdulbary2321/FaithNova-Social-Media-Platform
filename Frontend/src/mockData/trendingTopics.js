@@ -1,0 +1,42 @@
+export const trendingTopics = [
+  {
+    id: 'tr-1',
+    tag: 'CosmicExpansion',
+    title: 'The Expanding Universe & Ancient Exegesis',
+    discipline: 'Cosmology',
+    postCount: '2.4k syntheses',
+    isHot: true,
+  },
+  {
+    id: 'tr-2',
+    tag: 'NeurobiologyOfPrayer',
+    title: 'Gamma-band synchrony in deep contemplative dhikr',
+    discipline: 'Neuroscience',
+    postCount: '1.8k inquiries',
+    isHot: true,
+  },
+  {
+    id: 'tr-3',
+    tag: 'FineTuningMultiverse',
+    title: 'Cosmological Constants: Teleology vs The Many-Worlds Model',
+    discipline: 'Theoretical Physics',
+    postCount: '1.5k papers',
+    isHot: false,
+  },
+  {
+    id: 'tr-4',
+    tag: 'BioethicsCRISPR',
+    title: 'Gene editing boundaries in contemporary religious jurisprudence',
+    discipline: 'Bioethics',
+    postCount: '980 inquiries',
+    isHot: false,
+  },
+  {
+    id: 'tr-5',
+    tag: 'MachineConsciousness',
+    title: 'Can Artificial Intelligence possess Ruḥ (Spirit)?',
+    discipline: 'AI & Metaphysics',
+    postCount: '3.1k debates',
+    isHot: true,
+  },
+];

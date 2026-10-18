@@ -1,0 +1,17 @@
+export const currentUser = {
+  id: 'usr-001',
+  name: 'Dr. Tariq Al-Mansoor',
+  handle: '@talmansoor',
+  title: 'Astrophysicist & Comparative Theologian',
+  institution: 'University of Oxford',
+  department: 'Department of Physics & Ian Ramsey Centre',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  reputation: 1840,
+  peerReviews: 38,
+  savedPostsCount: 14,
+  followingCount: 182,
+  followersCount: 3420,
+  isVerified: true,
+  role: 'Verified Scholar',
+  specialties: ['General Relativity', 'Classical Kalam', 'Anthropic Principle'],
+};
