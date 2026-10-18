@@ -34,7 +34,7 @@ const ICON_MAP = {
 };
 
 export default function LeftSidebar({ onItemClick }) {
-  const { user } = useAuth();
+  const { user, openCreateModal } = useAuth();
 
   return (
     <aside className="w-full flex flex-col gap-6 py-4 select-none">
@@ -172,8 +172,11 @@ export default function LeftSidebar({ onItemClick }) {
           Have an insight connecting cosmological data and theological commentary? Submit a thesis for peer review.
         </p>
         <button
-          onClick={() => alert('Synthesis submission modal will be activated in Phase 2!')}
-          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-semibold text-xs shadow-md shadow-amber-500/20 active:scale-[0.98] transition-all"
+          onClick={() => {
+            openCreateModal();
+            if (onItemClick) onItemClick();
+          }}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-semibold text-xs shadow-md shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
         >
           <PlusCircle className="w-3.5 h-3.5" />
           <span>New Academic Thesis</span>

@@ -4,10 +4,13 @@ import TopNavbar from '../components/TopNavbar';
 import LeftSidebar from '../components/LeftSidebar';
 import RightSidebar from '../components/RightSidebar';
 import MobileBottomBar from '../components/MobileBottomBar';
-import { X } from 'lucide-react';
+import CreatePostModal from '../components/CreatePostModal';
+import { X, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function MainLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const { isCreateModalOpen, closeCreateModal, toastMessage } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col cosmic-bg transition-colors duration-200">
@@ -48,19 +51,19 @@ export default function MainLayout() {
       <div className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-5 xl:gap-8 min-h-[calc(100vh-4rem)]">
           
-          {/* Column 1: Left Navigation Sidebar (Hidden on mobile, col-span-4 on tablet, col-span-3 on desktop) */}
+          {/* Column 1: Left Navigation Sidebar */}
           <div className="hidden md:block md:col-span-4 lg:col-span-3">
             <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden pr-2">
               <LeftSidebar />
             </div>
           </div>
 
-          {/* Column 2: Center Content Area with Dynamic <Outlet /> (col-span-12 on mobile, col-span-8 on tablet, col-span-6 on desktop) */}
+          {/* Column 2: Center Content Area with Dynamic <Outlet /> */}
           <main className="col-span-12 md:col-span-8 lg:col-span-6 py-4 pb-20 md:pb-8 min-w-0">
             <Outlet />
           </main>
 
-          {/* Column 3: Right Sidebar (Hidden on mobile & tablet, visible on lg+ screens: col-span-3) */}
+          {/* Column 3: Right Sidebar */}
           <div className="hidden lg:block lg:col-span-3">
             <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden pl-1">
               <RightSidebar />
@@ -72,6 +75,22 @@ export default function MainLayout() {
 
       {/* 3. Mobile Bottom Bar for quick navigation on mobile */}
       <MobileBottomBar />
+
+      {/* 4. Global Create Post Modal (Phase 3) */}
+      <CreatePostModal 
+        isOpen={isCreateModalOpen} 
+        onClose={closeCreateModal} 
+      />
+
+      {/* 5. Publication Success Toast Feedback */}
+      {toastMessage && (
+        <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-400">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+          <span className="text-xs font-medium">{toastMessage}</span>
+        </div>
+      )}
 
     </div>
   );

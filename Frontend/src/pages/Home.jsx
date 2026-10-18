@@ -12,17 +12,13 @@ import {
   FileCheck2, 
   Filter 
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
+  const { posts } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('insightful'); // 'insightful', 'latest', 'popular'
-  const [posts, setPosts] = useState(sampleFeedPosts);
-
-  // Prepend newly created post
-  const handlePostCreated = (newPost) => {
-    setPosts(prev => [newPost, ...prev]);
-  };
 
   // Filter and sort posts
   const filteredPosts = useMemo(() => {
@@ -58,7 +54,7 @@ export default function Home() {
     <div className="space-y-5">
       
       {/* 1. Quick "Create Post" Trigger Box at the top */}
-      <CreatePostTrigger onPostCreated={handlePostCreated} />
+      <CreatePostTrigger />
 
       {/* 2. CategoryPills Bar */}
       <div className="pt-1">

@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 export default function MobileBottomBar() {
-  const { user, unreadCount } = useAuth();
+  const { user, unreadCount, openCreateModal } = useAuth();
 
   return (
     <nav 
@@ -54,9 +54,9 @@ export default function MobileBottomBar() {
         {/* 3. Center Elevated "New Thesis" Action Button */}
         <div className="flex items-center justify-center -mt-5">
           <button
-            onClick={() => alert('New Synthesis drafting will be fully interactive in Phase 2!')}
+            onClick={openCreateModal}
             aria-label="New Synthesis"
-            className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 shadow-lg shadow-amber-500/30 active:scale-95 transition-transform"
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 shadow-lg shadow-amber-500/30 active:scale-95 transition-transform cursor-pointer"
           >
             <Plus className="w-6 h-6 stroke-[2.5]" />
           </button>

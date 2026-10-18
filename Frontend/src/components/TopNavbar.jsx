@@ -18,7 +18,8 @@ import {
   X,
   GraduationCap,
   Award,
-  ExternalLink
+  ExternalLink,
+  Plus
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -34,7 +35,7 @@ const SEARCH_FILTERS = [
 
 export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
   const { theme, toggleTheme, isDark } = useTheme();
-  const { user, notifications, unreadCount, markAllNotificationsAsRead } = useAuth();
+  const { user, notifications, unreadCount, markAllNotificationsAsRead, openCreateModal } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState(SEARCH_FILTERS[0]);
@@ -186,9 +187,18 @@ export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
             </div>
           </div>
 
-          {/* Right Action Icons: Theme Toggle, Notifications, User Menu */}
+          {/* Right Action Icons: Publish button, Theme Toggle, Notifications, User Menu */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
             
+            {/* New Synthesis Action Button */}
+            <button
+              onClick={openCreateModal}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs shadow-sm hover:scale-105 active:scale-95 transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Publish</span>
+            </button>
+
             {/* Dark / Light Mode Toggle */}
             <button
               onClick={toggleTheme}
