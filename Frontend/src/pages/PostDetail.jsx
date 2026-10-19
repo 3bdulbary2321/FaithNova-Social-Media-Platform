@@ -27,25 +27,55 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CommentSection from '../components/CommentSection';
+import { useEffect } from 'react';
 import ReportModal from '../components/ReportModal';
+import api from '../api/axios';
+import { normalizePost } from '../api/normalizer';
 
 export default function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const { posts, bookmarkedIds, toggleBookmark } = useAuth();
+  const { posts, bookmarkedIds, toggleBookmark, toggleReaction, showToast, user } = useAuth();
 
-  // Find post by ID or fallback to the first post
-  const post = posts.find((p) => p.id === postId) || posts[0];
+  // Find post in memory or fallback
+  const initialPost = posts.find((p) => String(p.id) === String(postId)) || posts[0];
+  const [post, setPost] = useState(initialPost);
+  const [commentsList, setCommentsList] = useState(initialPost?.comments || []);
 
   // Post Actions State
-  const [likes, setLikes] = useState(post?.stats?.likes || 342);
-  const [isLiked, setIsLiked] = useState(false);
-  const [insightfuls, setInsightfuls] = useState(post?.stats?.insightfuls || 215);
-  const [isInsightful, setIsInsightful] = useState(false);
+  const [likes, setLikes] = useState(post?.stats?.likes ?? post?.stats?.likes_count ?? 342);
+  const [isLiked, setIsLiked] = useState(post?.user_reaction === 'like');
+  const [insightfuls, setInsightfuls] = useState(post?.stats?.insightfuls ?? post?.stats?.insightfuls_count ?? 215);
+  const [isInsightful, setIsInsightful] = useState(post?.user_reaction === 'insightful');
   const [copiedLink, setCopiedLink] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+
+  // Fetch full post and nested comments from API
+  useEffect(() => {
+    if (!postId) return;
+    const fetchFullPost = async () => {
+      try {
+        const res = await api.get(`/posts/${postId}`);
+        if (res.data && res.data.data) {
+          const normalized = normalizePost(res.data.data);
+          setPost(normalized);
+          setLikes(normalized.stats.likes);
+          setInsightfuls(normalized.stats.insightfuls);
+          setIsLiked(normalized.user_reaction === 'like');
+          setIsInsightful(normalized.user_reaction === 'insightful');
+          if (normalized.comments && normalized.comments.length > 0) {
+            setCommentsList(normalized.comments);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch post from API, using cached state.', err);
+      }
+    };
+
+    fetchFullPost();
+  }, [postId]);
 
   if (!post) {
     return (
@@ -60,14 +90,32 @@ export default function PostDetail() {
 
   const isBookmarked = bookmarkedIds.includes(post.id);
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes((prev) => (isLiked ? prev - 1 : prev + 1));
+  const handleLike = async () => {
+    const nextState = !isLiked;
+    setIsLiked(nextState);
+    setLikes((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
+    if (isInsightful && nextState) {
+      setIsInsightful(false);
+      setInsightfuls((prev) => Math.max(0, prev - 1));
+    }
+
+    if (toggleReaction) {
+      await toggleReaction(post.id, 'like');
+    }
   };
 
-  const handleInsightful = () => {
-    setIsInsightful(!isInsightful);
-    setInsightfuls((prev) => (isInsightful ? prev - 1 : prev + 1));
+  const handleInsightful = async () => {
+    const nextState = !isInsightful;
+    setIsInsightful(nextState);
+    setInsightfuls((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
+    if (isLiked && nextState) {
+      setIsLiked(false);
+      setLikes((prev) => Math.max(0, prev - 1));
+    }
+
+    if (toggleReaction) {
+      await toggleReaction(post.id, 'insightful');
+    }
   };
 
   const handleShare = () => {
@@ -463,9 +511,17 @@ export default function PostDetail() {
 
       {/* 6. Respectful Discussion & Nested Comments Section */}
       <CommentSection 
-        comments={post.comments || []} 
-        onAddComment={(newComm) => {
-          console.log('Added comment to post:', newComm);
+        comments={commentsList} 
+        onAddComment={async (newComm) => {
+          setCommentsList((prev) => [...prev, newComm]);
+          try {
+            await api.post(`/posts/${post.id}/comments`, {
+              content: newComm.text || newComm.content,
+              parent_id: newComm.parentId || null,
+            });
+          } catch (err) {
+            console.warn('Comment stored locally.', err);
+          }
         }}
       />
 
@@ -475,8 +531,18 @@ export default function PostDetail() {
         onClose={() => setIsReportOpen(false)}
         targetType="post"
         targetTitle={post.title}
-        onSubmitReport={(data) => {
-          console.log('Reported post:', data);
+        onSubmitReport={async (data) => {
+          try {
+            await api.post('/reports', {
+              reportable_type: 'post',
+              reportable_id: post.id,
+              reason: data?.reason || 'Disrespectful behavior',
+              notes: data?.notes || null,
+            });
+            showToast?.('Report submitted for peer review moderation.');
+          } catch (err) {
+            console.warn('Report submitted locally.', err);
+          }
         }}
       />
 

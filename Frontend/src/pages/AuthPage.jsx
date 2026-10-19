@@ -23,7 +23,7 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const { user, setUser, showToast } = useAuth();
+  const { user, setUser, login, register, showToast } = useAuth();
   const { isDark } = useTheme();
 
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -31,8 +31,8 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Login Form State
-  const [loginEmail, setLoginEmail] = useState('tariq.almansoor@physics.ox.ac.uk');
-  const [loginPassword, setLoginPassword] = useState('••••••••••••');
+  const [loginEmail, setLoginEmail] = useState('tariq@faithnova.com');
+  const [loginPassword, setLoginPassword] = useState('password123');
   const [rememberMe, setRememberMe] = useState(true);
 
   // Register Form State
@@ -43,18 +43,22 @@ export default function AuthPage() {
   const [regPassword, setRegPassword] = useState('');
   const [agreeCharter, setAgreeCharter] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      showToast('Welcome back, Dr. Al-Mansoor! Fellowship session active.');
+    const result = await login({
+      login: loginEmail,
+      password: loginPassword,
+    });
+
+    setIsLoading(false);
+    if (result.success) {
       navigate('/');
-    }, 600);
+    }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!agreeCharter) {
       alert('Please agree to the FaithNova Academic Discourse Charter to register.');
@@ -62,17 +66,19 @@ export default function AuthPage() {
     }
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      setUser(prev => ({
-        ...prev,
-        name: regName || 'Scholar Fellow',
-        institution: regInstitution || 'Cambridge University',
-        title: `${regDiscipline} Researcher`,
-      }));
-      showToast('Fellowship registration submitted! Welcome to FaithNova.');
+    const cleanUsername = regEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_') || `scholar_${Date.now()}`;
+    const result = await register({
+      name: regName,
+      username: cleanUsername,
+      email: regEmail,
+      password: regPassword,
+      bio: `${regInstitution} — ${regDiscipline}`,
+    });
+
+    setIsLoading(false);
+    if (result.success) {
       navigate('/profile');
-    }, 700);
+    }
   };
 
   return (
@@ -223,23 +229,47 @@ export default function AuthPage() {
 
           {/* Quick Demo Login Preset Button */}
           {mode === 'login' && (
-            <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/20 flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                <span className="text-slate-700 dark:text-slate-300 font-medium">
-                  Testing? Use pre-configured Scholar Fellow credentials
-                </span>
+            <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/20 text-xs">
+              <div className="flex flex-col gap-1.5 w-full">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">
+                    Quick Autofill Seeded Accounts (Password: password123)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginEmail('tariq@faithnova.com');
+                      setLoginPassword('password123');
+                    }}
+                    className="px-2 py-1 text-[11px] rounded-lg bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-bold hover:bg-indigo-500/25 transition-colors"
+                  >
+                    Moderator (Dr. Tariq)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginEmail('admin@faithnova.com');
+                      setLoginPassword('password123');
+                    }}
+                    className="px-2 py-1 text-[11px] rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold hover:bg-amber-500/30 transition-colors"
+                  >
+                    Admin
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginEmail('marcus@faithnova.com');
+                      setLoginPassword('password123');
+                    }}
+                    className="px-2 py-1 text-[11px] rounded-lg bg-slate-500/15 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-500/25 transition-colors"
+                  >
+                    Scholar (Marcus)
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginEmail('tariq.almansoor@physics.ox.ac.uk');
-                  setLoginPassword('quantumCosmo2026!');
-                }}
-                className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold hover:bg-amber-500/30 transition-colors flex-shrink-0"
-              >
-                Autofill
-              </button>
             </div>
           )}
 

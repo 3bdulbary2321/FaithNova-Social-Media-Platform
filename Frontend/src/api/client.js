@@ -1,13 +1,4 @@
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-  timeout: 5000,
-});
+import api from './axios';
 
 export const checkBackendHealth = async () => {
   try {
@@ -20,7 +11,7 @@ export const checkBackendHealth = async () => {
   } catch (error) {
     return {
       connected: false,
-      error: error.message || 'Cannot reach Laravel API',
+      error: error.response?.data?.message || error.message || 'Cannot reach Laravel API',
       timestamp: new Date().toLocaleTimeString(),
     };
   }

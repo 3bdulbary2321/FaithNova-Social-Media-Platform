@@ -29,16 +29,17 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ReportModal from './ReportModal';
+import api from '../api/axios';
 
 export default function PostCard({ post }) {
-  const { user, bookmarkedIds, toggleBookmark } = useAuth();
+  const { user, bookmarkedIds, toggleBookmark, toggleReaction, showToast } = useAuth();
 
   // Local state for interactive reactions
-  const [likes, setLikes] = useState(post.stats.likes);
-  const [isLiked, setIsLiked] = useState(false);
+  const [likes, setLikes] = useState(post.stats?.likes ?? post.stats?.likes_count ?? 0);
+  const [isLiked, setIsLiked] = useState(post.user_reaction === 'like');
 
-  const [insightfuls, setInsightfuls] = useState(post.stats.insightfuls);
-  const [isInsightful, setIsInsightful] = useState(false);
+  const [insightfuls, setInsightfuls] = useState(post.stats?.insightfuls ?? post.stats?.insightfuls_count ?? 0);
+  const [isInsightful, setIsInsightful] = useState(post.user_reaction === 'insightful');
 
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState(post.comments || []);
@@ -55,33 +56,65 @@ export default function PostCard({ post }) {
   const isBookmarked = bookmarkedIds.includes(post.id);
 
   // Toggle Like reaction
-  const handleLike = () => {
-    setIsLiked(prev => !prev);
-    setLikes(prev => (isLiked ? prev - 1 : prev + 1));
+  const handleLike = async () => {
+    const nextState = !isLiked;
+    setIsLiked(nextState);
+    setLikes((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
+    if (isInsightful && nextState) {
+      setIsInsightful(false);
+      setInsightfuls((prev) => Math.max(0, prev - 1));
+    }
+
+    if (toggleReaction) {
+      await toggleReaction(post.id, 'like');
+    }
   };
 
   // Toggle "Insightful" reaction
-  const handleInsightful = () => {
-    setIsInsightful(prev => !prev);
-    setInsightfuls(prev => (isInsightful ? prev - 1 : prev + 1));
+  const handleInsightful = async () => {
+    const nextState = !isInsightful;
+    setIsInsightful(nextState);
+    setInsightfuls((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
+    if (isLiked && nextState) {
+      setIsLiked(false);
+      setLikes((prev) => Math.max(0, prev - 1));
+    }
+
+    if (toggleReaction) {
+      await toggleReaction(post.id, 'insightful');
+    }
   };
 
   // Add Comment
-  const handleAddComment = (e) => {
+  const handleAddComment = async (e) => {
     e.preventDefault();
     if (!newCommentText.trim()) return;
 
+    const commentText = newCommentText.trim();
+    const tempId = `comm-${Date.now()}`;
+
     const newComment = {
-      id: `comm-${Date.now()}`,
-      author: user.name,
-      avatar: user.avatar,
-      role: user.role,
-      time: 'Just now',
-      text: newCommentText.trim(),
+      id: tempId,
+      author: {
+        name: user?.name || 'Scholar Fellow',
+        avatar: user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80',
+        roleBadge: user?.role === 'admin' ? 'Curator' : 'Fellow',
+        badgeType: 'science',
+      },
+      timestamp: 'Just now',
+      text: commentText,
+      likes: 0,
+      replies: [],
     };
 
-    setComments(prev => [...prev, newComment]);
+    setComments((prev) => [...prev, newComment]);
     setNewCommentText('');
+
+    try {
+      await api.post(`/posts/${post.id}/comments`, { content: commentText });
+    } catch (err) {
+      console.warn('Comment posted to local session.', err);
+    }
   };
 
   // Copy Post Link
@@ -94,9 +127,21 @@ export default function PostCard({ post }) {
   };
 
   // Handle Report confirmation
-  const handleConfirmReport = () => {
+  const handleConfirmReport = async (reportData) => {
     setIsReported(true);
     setShowReportModal(false);
+
+    try {
+      await api.post('/reports', {
+        reportable_type: 'post',
+        reportable_id: post.id,
+        reason: reportData?.reason || 'Disrespectful behavior',
+        notes: reportData?.notes || null,
+      });
+      showToast?.('Report submitted for peer review moderation.');
+    } catch (err) {
+      console.warn('Report recorded in session.', err);
+    }
   };
 
   // Role Badge Styling

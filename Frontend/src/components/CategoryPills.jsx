@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { 
   Sparkles, 
   Compass, 
@@ -7,10 +7,12 @@ import {
   Dna, 
   Scroll, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-export const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { id: 'All', name: 'All Syntheses', icon: Sparkles, count: 18 },
   { id: 'Astronomy', name: 'Astronomy', icon: Compass, count: 5 },
   { id: 'Medicine', name: 'Medicine', icon: HeartPulse, count: 4 },
@@ -19,8 +21,44 @@ export const CATEGORIES = [
   { id: 'History', name: 'History of Science', icon: Scroll, count: 2 },
 ];
 
+const ICON_MAP = {
+  astronomy: Compass,
+  medicine: HeartPulse,
+  physics: Atom,
+  biology: Dna,
+  history: Scroll,
+};
+
 export default function CategoryPills({ selectedCategory, onSelectCategory }) {
+  const { categories, posts } = useAuth();
   const scrollContainerRef = useRef(null);
+
+  const displayCategories = useMemo(() => {
+    if (!categories || categories.length === 0) {
+      return DEFAULT_CATEGORIES;
+    }
+
+    const allPill = {
+      id: 'All',
+      name: 'All Syntheses',
+      icon: Sparkles,
+      count: posts ? posts.length : 18,
+    };
+
+    const apiPills = categories.map((c) => {
+      const slug = c.slug?.toLowerCase() || c.name?.toLowerCase();
+      const Icon = ICON_MAP[slug] || BookOpen;
+      return {
+        id: c.name,
+        name: c.name,
+        slug: c.slug,
+        icon: Icon,
+        count: c.posts_count ?? 0,
+      };
+    });
+
+    return [allPill, ...apiPills];
+  }, [categories, posts]);
 
   const handleScroll = (direction) => {
     if (scrollContainerRef.current) {
@@ -47,7 +85,7 @@ export default function CategoryPills({ selectedCategory, onSelectCategory }) {
         className="flex items-center gap-2 overflow-x-auto scroll-smooth py-1 px-0.5 no-scrollbar"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {CATEGORIES.map((cat) => {
+        {displayCategories.map((cat) => {
           const Icon = cat.icon;
           const isSelected = selectedCategory === cat.id;
 

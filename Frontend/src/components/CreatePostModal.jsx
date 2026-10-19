@@ -226,7 +226,7 @@ export default function CreatePostModal({ isOpen, onClose }) {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       // Build multimedia object for PostCard
       let mediaPayload = null;
       if (uploadedFiles.length > 0) {
@@ -313,12 +313,13 @@ export default function CreatePostModal({ isOpen, onClose }) {
           shares: 0,
         },
         comments: [],
+        mediaFiles: uploadedFiles.map((f) => f.file).filter(Boolean),
       };
 
-      addPost(newPost);
+      await addPost(newPost);
       setIsSubmitting(false);
       onClose();
-    }, 700);
+    }, 300);
   };
 
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;

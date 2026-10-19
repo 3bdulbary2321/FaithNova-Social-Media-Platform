@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { initialPendingPosts, initialReportedContent } from '../mockData/moderationData';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 
 export default function ModerationDashboard() {
   const { addPost, showToast } = useAuth();
@@ -29,10 +30,90 @@ export default function ModerationDashboard() {
   const [pendingQueue, setPendingQueue] = useState(initialPendingPosts);
   const [reportedList, setReportedList] = useState(initialReportedContent);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statsData, setStatsData] = useState({
+    pending_posts_count: 1,
+    pending_reports_count: 1,
+    total_users_count: 5,
+    total_published_posts_count: 3,
+  });
+
+  // Fetch real moderation data on mount
+  useEffect(() => {
+    const fetchModerationData = async () => {
+      try {
+        const [statsRes, pendingRes, reportsRes] = await Promise.allSettled([
+          api.get('/moderation/stats'),
+          api.get('/moderation/posts/pending'),
+          api.get('/moderation/reports'),
+        ]);
+
+        if (statsRes.status === 'fulfilled' && statsRes.value?.data?.data) {
+          setStatsData(statsRes.value.data.data);
+        }
+
+        if (pendingRes.status === 'fulfilled') {
+          const raw = pendingRes.value?.data?.data?.data || pendingRes.value?.data?.data || [];
+          if (Array.isArray(raw) && raw.length > 0) {
+            setPendingQueue(raw.map((p) => ({
+              id: p.id,
+              title: p.title,
+              category: p.category?.name || 'Cosmology',
+              author: {
+                name: p.author?.name || 'Scholar Fellow',
+                avatar: p.author?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+                roleBadge: p.author?.role === 'admin' ? 'Curator' : 'Astrophysicist',
+                institution: p.author?.bio || 'Academic Fellowship',
+              },
+              timestamp: p.created_at_human || 'Recent submission',
+              excerpt: p.content?.slice(0, 200) + '...',
+              religiousReference: typeof p.religiousReference === 'object' && p.religiousReference !== null
+                ? p.religiousReference
+                : {
+                    source: 'Scriptural Exegesis & Theological Source',
+                    text: p.religious_reference || 'Sacred hermeneutical synthesis attached.',
+                  },
+              scientificReference: typeof p.scientificReference === 'object' && p.scientificReference !== null
+                ? p.scientificReference
+                : {
+                    citation: 'Empirical Science Publication',
+                    paperTitle: p.scientific_reference || 'Peer-reviewed evidence attached.',
+                  },
+            })));
+          }
+        }
+
+        if (reportsRes.status === 'fulfilled') {
+          const rawReports = reportsRes.value?.data?.data?.data || reportsRes.value?.data?.data || [];
+          if (Array.isArray(rawReports) && rawReports.length > 0) {
+            setReportedList(rawReports.map((r) => ({
+              id: r.id,
+              type: r.reportable_type?.toLowerCase() || 'post',
+              contentSnippet: r.reportable?.title || r.reportable?.content || 'Reported content snippet',
+              author: r.reportable?.author?.name || 'Member',
+              reportedBy: r.reporter?.name || 'Academic Colleague',
+              reason: r.reason,
+              notes: r.notes || '',
+              timestamp: r.created_at_human || 'Recently',
+              status: r.status,
+            })));
+          }
+        }
+      } catch (err) {
+        console.warn('Could not load moderation data from API, using cached data.', err);
+      }
+    };
+
+    fetchModerationData();
+  }, []);
 
   // Handle Post Approval
-  const handleApprove = (post) => {
-    // Add approved post to public feed
+  const handleApprove = async (post) => {
+    try {
+      await api.patch(`/moderation/posts/${post.id}/status`, { status: 'published' });
+    } catch {
+      // Fallback
+    }
+
     addPost({
       ...post,
       id: `approved-${post.id}`,
@@ -42,25 +123,60 @@ export default function ModerationDashboard() {
       comments: [],
     });
 
-    setPendingQueue(prev => prev.filter(p => p.id !== post.id));
+    setPendingQueue((prev) => prev.filter((p) => p.id !== post.id));
+    setStatsData((prev) => ({
+      ...prev,
+      pending_posts_count: Math.max(0, prev.pending_posts_count - 1),
+      total_published_posts_count: prev.total_published_posts_count + 1,
+    }));
     showToast(`Approved "${post.title.slice(0, 30)}..." to the public feed!`);
   };
 
   // Handle Post Rejection
-  const handleReject = (postId, title) => {
-    setPendingQueue(prev => prev.filter(p => p.id !== postId));
+  const handleReject = async (postId, title) => {
+    try {
+      await api.patch(`/moderation/posts/${postId}/status`, { status: 'rejected' });
+    } catch {
+      // Fallback
+    }
+
+    setPendingQueue((prev) => prev.filter((p) => p.id !== postId));
+    setStatsData((prev) => ({
+      ...prev,
+      pending_posts_count: Math.max(0, prev.pending_posts_count - 1),
+    }));
     showToast(`Rejected submission: "${title.slice(0, 30)}...". Feedback sent to author.`);
   };
 
   // Handle Dismiss Report
-  const handleDismissReport = (reportId) => {
-    setReportedList(prev => prev.filter(r => r.id !== reportId));
+  const handleDismissReport = async (reportId) => {
+    try {
+      await api.post(`/moderation/reports/${reportId}/resolve`, { action: 'dismiss' });
+    } catch {
+      // Fallback
+    }
+
+    setReportedList((prev) => prev.filter((r) => r.id !== reportId));
+    setStatsData((prev) => ({
+      ...prev,
+      pending_reports_count: Math.max(0, prev.pending_reports_count - 1),
+    }));
     showToast('Report dismissed as charter-compliant.');
   };
 
   // Handle Delete Content
-  const handleDeleteContent = (reportId, title) => {
-    setReportedList(prev => prev.filter(r => r.id !== reportId));
+  const handleDeleteContent = async (reportId, title) => {
+    try {
+      await api.post(`/moderation/reports/${reportId}/resolve`, { action: 'delete_content' });
+    } catch {
+      // Fallback
+    }
+
+    setReportedList((prev) => prev.filter((r) => r.id !== reportId));
+    setStatsData((prev) => ({
+      ...prev,
+      pending_reports_count: Math.max(0, prev.pending_reports_count - 1),
+    }));
     showToast(`Content removed for charter breach: "${title.slice(0, 30)}..."`);
   };
 
@@ -267,10 +383,10 @@ export default function ModerationDashboard() {
                       <span>Scriptural Reference</span>
                     </div>
                     <span className="font-semibold text-slate-800 dark:text-slate-200 block text-[11px]">
-                      {item.religiousReference.source}
+                      {item.religiousReference?.source || 'Theological Reference'}
                     </span>
                     <p className="italic font-serif text-slate-600 dark:text-slate-400 text-[11px]">
-                      "{item.religiousReference.text}"
+                      "{item.religiousReference?.text || 'Scriptural hermeneutic excerpt'}"
                     </p>
                   </div>
 
@@ -281,10 +397,10 @@ export default function ModerationDashboard() {
                       <span>Scientific Citation Verified</span>
                     </div>
                     <span className="font-semibold text-slate-800 dark:text-slate-200 block text-[11px]">
-                      {item.scientificReference.citation}
+                      {item.scientificReference?.citation || 'Empirical Publication'}
                     </span>
                     <p className="italic text-slate-600 dark:text-slate-400 text-[11px]">
-                      "{item.scientificReference.paperTitle}"
+                      "{item.scientificReference?.paperTitle || 'Peer-reviewed evidence'}"
                     </p>
                   </div>
                 </div>

@@ -25,26 +25,27 @@ import { useAuth } from '../context/AuthContext';
 import PostCard from '../components/PostCard';
 
 export default function UserProfile() {
-  const { user, setUser, posts, showToast } = useAuth();
+  const { user, setUser, updateProfile, posts, showToast } = useAuth();
   
   const [activeTab, setActiveTab] = useState('published'); // 'published', 'media', 'insightful'
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Edit Profile Form State
-  const [editName, setEditName] = useState(user.name);
-  const [editTitle, setEditTitle] = useState(user.title);
-  const [editInstitution, setEditInstitution] = useState(user.institution);
-  const [editDepartment, setEditDepartment] = useState(user.department || '');
-  const [editBio, setEditBio] = useState(user.bio || '');
-  const [editLocation, setEditLocation] = useState(user.location || 'Oxford, UK');
-  const [editWebsite, setEditWebsite] = useState(user.website || 'https://oxford.academia.edu');
-  const [editAvatar, setEditAvatar] = useState(user.avatar);
-  const [editCover, setEditCover] = useState(user.coverBanner || '');
+  const [editName, setEditName] = useState(user?.name || '');
+  const [editTitle, setEditTitle] = useState(user?.title || '');
+  const [editInstitution, setEditInstitution] = useState(user?.institution || '');
+  const [editDepartment, setEditDepartment] = useState(user?.department || '');
+  const [editBio, setEditBio] = useState(user?.bio || '');
+  const [editLocation, setEditLocation] = useState(user?.location || 'Oxford, UK');
+  const [editWebsite, setEditWebsite] = useState(user?.website || 'https://oxford.academia.edu');
+  const [editAvatar, setEditAvatar] = useState(user?.avatar || '');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [editCover, setEditCover] = useState(user?.coverBanner || '');
 
   // Filter posts published by this author or match author name
   const userPublishedPosts = posts.filter(
-    (p) => p.author.name === user.name || p.author.handle === user.handle
+    (p) => p.author?.name === user?.name || p.author?.handle === user?.handle
   );
   // If user hasn't published custom posts yet, display first 2 as showcase
   const displayedPosts = userPublishedPosts.length > 0 ? userPublishedPosts : posts.slice(0, 2);
@@ -72,22 +73,34 @@ export default function UserProfile() {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    setUser(prev => ({
-      ...prev,
-      name: editName,
-      title: editTitle,
-      institution: editInstitution,
-      department: editDepartment,
-      bio: editBio,
-      location: editLocation,
-      website: editWebsite,
-      avatar: editAvatar,
-      coverBanner: editCover,
-    }));
+
+    const formData = new FormData();
+    formData.append('name', editName);
+    formData.append('bio', editBio);
+    if (avatarFile) {
+      formData.append('avatar', avatarFile);
+    }
+
+    if (updateProfile) {
+      await updateProfile(formData);
+    } else {
+      setUser(prev => ({
+        ...prev,
+        name: editName,
+        title: editTitle,
+        institution: editInstitution,
+        department: editDepartment,
+        bio: editBio,
+        location: editLocation,
+        website: editWebsite,
+        avatar: editAvatar,
+        coverBanner: editCover,
+      }));
+      showToast('Academic profile updated successfully!');
+    }
     setIsEditModalOpen(false);
-    showToast('Academic profile updated successfully!');
   };
 
   return (
@@ -474,11 +487,29 @@ export default function UserProfile() {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Avatar Image URL</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Upload Avatar Image (JPEG, PNG, WEBP)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setAvatarFile(e.target.files[0]);
+                      setEditAvatar(URL.createObjectURL(e.target.files[0]));
+                    }
+                  }}
+                  className="w-full py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-indigo-500 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Or Avatar Image URL</label>
                 <input
                   type="text"
                   value={editAvatar}
                   onChange={(e) => setEditAvatar(e.target.value)}
+                  placeholder="https://..."
                   className="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-indigo-500 text-xs font-mono"
                 />
               </div>

@@ -35,13 +35,19 @@ const SEARCH_FILTERS = [
 
 export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
   const { theme, toggleTheme, isDark } = useTheme();
-  const { user, notifications, unreadCount, markAllNotificationsAsRead, openCreateModal } = useAuth();
+  const { user, notifications, unreadCount, markAllNotificationsAsRead, openCreateModal, logout, isAuthenticated, fetchPosts } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState(SEARCH_FILTERS[0]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter' && fetchPosts) {
+      fetchPosts({ q: searchQuery });
+    }
+  };
 
   const searchInputRef = useRef(null);
   const filterRef = useRef(null);
@@ -166,6 +172,7 @@ export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Search papers, verses, DOI, cosmology..."
                   className="w-full py-2 pl-2.5 pr-10 text-xs sm:text-sm bg-transparent outline-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400"
                 />
@@ -173,7 +180,10 @@ export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
                 {/* Clear or Keyboard Shortcut badge */}
                 {searchQuery ? (
                   <button
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      if (fetchPosts) fetchPosts();
+                    }}
                     className="p-1 mr-2 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -392,14 +402,28 @@ export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
                   </div>
 
                   <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800/80">
-                    <Link
-                      to="/auth"
-                      onClick={() => setIsProfileOpen(false)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors text-xs font-medium"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
-                    </Link>
+                    {isAuthenticated ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          logout();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors text-xs font-medium text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    ) : (
+                      <Link
+                        to="/auth"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/30 transition-colors text-xs font-medium"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign In / Join</span>
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}
