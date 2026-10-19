@@ -15,6 +15,18 @@ class PostResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Detect current authenticated user (supports both token and session)
+        $currentUser = $request->user('sanctum') ?? $request->user();
+        $userReaction = null;
+
+        if ($currentUser) {
+            if ($this->relationLoaded('reactions')) {
+                $userReaction = $this->reactions->firstWhere('user_id', $currentUser->id)?->type;
+            } else {
+                $userReaction = $this->reactions()->where('user_id', $currentUser->id)->value('type');
+            }
+        }
+
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
@@ -27,13 +39,7 @@ class PostResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
             'author' => new UserResource($this->whenLoaded('user')),
-            'category' => $this->whenLoaded('category', function () {
-                return [
-                    'id' => $this->category->id,
-                    'name' => $this->category->name,
-                    'slug' => $this->category->slug,
-                ];
-            }),
+            'category' => new CategoryResource($this->whenLoaded('category')),
             'media' => $this->whenLoaded('media', function () {
                 return $this->media->map(function ($item) {
                     $url = $item->file_path;
@@ -49,11 +55,19 @@ class PostResource extends JsonResource
                 });
             }),
             'stats' => [
-                'comments_count' => $this->comments_count ?? 0,
-                'reactions_count' => $this->reactions_count ?? 0,
-                'likes_count' => $this->likes_count ?? 0,
-                'insightfuls_count' => $this->insightfuls_count ?? 0,
+                'comments_count' => (int) ($this->comments_count ?? 0),
+                'reactions_count' => (int) ($this->reactions_count ?? 0),
+                'likes_count' => (int) ($this->likes_count ?? 0),
+                'insightfuls_count' => (int) ($this->insightfuls_count ?? 0),
             ],
+            'user_reaction' => $userReaction,
+            'comments' => CommentResource::collection(
+                $this->whenLoaded('rootComments', function () {
+                    return $this->rootComments;
+                }, function () {
+                    return $this->whenLoaded('comments');
+                })
+            ),
         ];
     }
 }
