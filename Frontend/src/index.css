@@ -431,3 +431,11 @@ body:has(dialog[open]) { overflow: hidden; }
   .discussion-section form > div:last-child { flex-wrap: wrap; gap: 12px; }
   .discussion-section .justify-between { flex-wrap: wrap; gap: 8px; }
 }
+
+.auth-options { display: grid; gap: 16px; }
+.auth-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
+.auth-divider::before, .auth-divider::after { content: ''; height: 1px; flex: 1; background: var(--line); }
+.google-sign-in { display: grid; justify-items: center; gap: 8px; }
+.google-sign-in small, .auth-session-note { color: var(--muted); font-size: 12px; text-align: center; }
+.google-button { width: 100%; justify-content: center; }
+.auth-options .auth-switch { margin-top: 0; }

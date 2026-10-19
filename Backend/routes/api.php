@@ -9,6 +9,7 @@ use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,11 +31,11 @@ use Illuminate\Support\Facades\Route;
 // Health check & Database connectivity status
 Route::get('/status', function () {
     try {
-        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        DB::connection()->getPdo();
         $dbStatus = 'connected';
-        $databaseName = \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
-    } catch (\Throwable $e) {
-        $dbStatus = 'error: ' . $e->getMessage();
+        $databaseName = DB::connection()->getDatabaseName();
+    } catch (Throwable $e) {
+        $dbStatus = 'error: '.$e->getMessage();
         $databaseName = null;
     }
 
@@ -56,6 +57,7 @@ Route::get('/status', function () {
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/google', [AuthController::class, 'google'])->middleware('throttle:10,1');
 });
 
 // Academic & Spiritual Categories (Public Browsing)
@@ -69,7 +71,6 @@ Route::get('/posts/{id}', [PostController::class, 'show']);
 
 // Public Scholar / User Profiles & Published Portfolios
 Route::get('/users/{username}', [UserController::class, 'show']);
-
 
 // =========================================================================
 // 2. AUTHENTICATED USER ROUTES (Requires Sanctum Token)
@@ -104,12 +105,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reports', [ReportController::class, 'store']);
 });
 
-
 // =========================================================================
 // 3. MODERATION & STAFF ROUTES (Admin & Moderator RBAC)
 // =========================================================================
 Route::middleware(['auth:sanctum', 'role:admin,moderator'])->prefix('moderation')->group(function () {
-    
+
     // Staff RBAC Verification & Ping
     Route::get('/ping', function (Request $request) {
         return response()->json([

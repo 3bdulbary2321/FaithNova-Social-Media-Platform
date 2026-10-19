@@ -7,7 +7,7 @@ import ReportModal from './ReportModal';
 import api from '../api/axios';
 
 export default function PostCard({ post, expanded = false }) {
-  const { bookmarkedIds, toggleBookmark, toggleReaction, showToast } = useAuth();
+  const { bookmarkedIds, toggleBookmark, toggleReaction, showToast, requireAuth } = useAuth();
   const [reaction, setReaction] = useState(post.user_reaction);
   const [counts, setCounts] = useState({ like: post.stats.likes, insightful: post.stats.insightfuls });
   const [pending, setPending] = useState(false);
@@ -18,7 +18,7 @@ export default function PostCard({ post, expanded = false }) {
   const isSaved = bookmarkedIds.includes(post.id);
   const readTime = Math.max(1, Math.ceil(post.content.split(/\s+/).length / 200));
   const react = async type => {
-    if (pending) return;
+    if (pending || !requireAuth()) return;
     setPending(true);
     const next = reaction === type ? null : type;
     setCounts(previous => ({
@@ -28,6 +28,11 @@ export default function PostCard({ post, expanded = false }) {
     setReaction(next);
     try {
       const result = await toggleReaction(post.id, type);
+      if (!result?.stats) {
+        setCounts({ like: post.stats.likes, insightful: post.stats.insightfuls });
+        setReaction(post.user_reaction);
+        showToast('Could not save your reaction. Please try again.');
+      }
       if (result?.stats) {
         setCounts({ like: result.stats.likes_count, insightful: result.stats.insightfuls_count });
         setReaction(result.user_reaction);
@@ -35,6 +40,7 @@ export default function PostCard({ post, expanded = false }) {
     } finally { setPending(false); }
   };
   const share = async () => {
+    if (!requireAuth()) return;
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
       setCopied(true);
@@ -43,6 +49,7 @@ export default function PostCard({ post, expanded = false }) {
     } catch { showToast('Could not copy the link. Open the post and copy its address.'); }
   };
   const report = async data => {
+    if (!requireAuth()) throw new Error('Please sign in to report a post.');
     try {
       await api.post('/reports', { reportable_type: 'post', reportable_id: post.id, reason: data.reason, notes: data.notes || null });
       showToast('Report sent to the moderation team.');
@@ -58,7 +65,7 @@ export default function PostCard({ post, expanded = false }) {
         {(post.religiousReference || post.scientificReference) && <details className="post-references" open={expanded || undefined}><summary><BookOpen size={16} /><span>Sources & perspectives</span><span className="reference-count">{Number(Boolean(post.religiousReference)) + Number(Boolean(post.scientificReference))} references</span></summary><div className="reference-grid">{post.religiousReference && <section><h3><BookOpen size={15} />Faith perspective</h3><strong>{post.religiousReference.source}</strong><blockquote>{post.religiousReference.scripture}</blockquote><p>{post.religiousReference.exegesis}</p></section>}{post.scientificReference && <section><h3><Atom size={15} />Scientific perspective</h3><strong>{post.scientificReference.citation}</strong><p>{post.scientificReference.paperTitle}</p><p>{post.scientificReference.explanation}</p></section>}</div></details>}
         <div className="post-tags">{post.tags.slice(0, 3).map(tag => <Link key={tag} to={`/?q=${encodeURIComponent(tag)}`}>#{tag}</Link>)}</div>
       </div>
-      <footer className="post-actions"><div><button disabled={pending} className={reaction === 'like' ? 'is-active' : ''} aria-label={`Like post, ${counts.like} likes`} aria-pressed={reaction === 'like'} onClick={() => react('like')}><ThumbsUp size={17} /><span>{counts.like}</span></button><button disabled={pending} className={reaction === 'insightful' ? 'is-active' : ''} aria-label={`Mark insightful, ${counts.insightful} reactions`} aria-pressed={reaction === 'insightful'} onClick={() => react('insightful')}><Lightbulb size={17} /><span>{counts.insightful}</span><span className="action-label">Insightful</span></button><Link to={`/post/${post.id}#discussion`} aria-label="Read comments"><MessageSquare size={17} /><span>{post.stats.commentsCount || post.comments.length}</span></Link></div><div><button onClick={share} aria-label="Copy post link">{copied ? <Check size={17} /> : <Share2 size={17} />}</button><button onClick={() => setReportOpen(true)} aria-label="Report post"><Flag size={16} /></button></div></footer>
+      <footer className="post-actions"><div><button disabled={pending} className={reaction === 'like' ? 'is-active' : ''} aria-label={`Like post, ${counts.like} likes`} aria-pressed={reaction === 'like'} onClick={() => react('like')}><ThumbsUp size={17} /><span>{counts.like}</span></button><button disabled={pending} className={reaction === 'insightful' ? 'is-active' : ''} aria-label={`Mark insightful, ${counts.insightful} reactions`} aria-pressed={reaction === 'insightful'} onClick={() => react('insightful')}><Lightbulb size={17} /><span>{counts.insightful}</span><span className="action-label">Insightful</span></button><Link to={`/post/${post.id}#discussion`} aria-label="Read comments"><MessageSquare size={17} /><span>{post.stats.commentsCount || post.comments.length}</span></Link></div><div><button onClick={share} aria-label="Copy post link">{copied ? <Check size={17} /> : <Share2 size={17} />}</button><button onClick={() => { if (requireAuth()) setReportOpen(true); }} aria-label="Report post"><Flag size={16} /></button></div></footer>
       {reportOpen && <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} targetType="post" targetTitle={post.title} onSubmitReport={report} />}
     </article>
   );

@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const icons = { Compass, Atom, Dna, HeartPulse, Brain, BookOpen, Scroll };
 
 export default function LeftSidebar({ onItemClick }) {
-  const { user, bookmarkedIds, isAuthenticated } = useAuth();
+  const { user, bookmarkedIds, isAuthenticated, openAuthDialog } = useAuth();
   const linkClass = ({ isActive }) => `nav-item${isActive ? ' active' : ''}`;
   return (
     <aside className="sidebar-content">
@@ -25,7 +25,7 @@ export default function LeftSidebar({ onItemClick }) {
         })}
       </nav>
       <div className="sidebar-note"><BookOpen size={21} /><h3>Stay curious. Be kind.</h3><p>A shared space for thoughtful questions and evidence-led conversations.</p><NavLink to="/moderation" onClick={onItemClick}>Our community principles <ArrowUpRight size={14} /></NavLink></div>
-      <NavLink to={isAuthenticated ? '/profile' : '/auth'} onClick={onItemClick} className="sidebar-profile">
+      <NavLink to={isAuthenticated ? '/profile' : '/auth'} onClick={event => { onItemClick?.(); if (!isAuthenticated) { event.preventDefault(); openAuthDialog(); } }} className="sidebar-profile">
         {isAuthenticated ? <Avatar src={user.avatar} name={user.name} /> : <span className="guest-avatar"><BookOpen size={19} /></span>}
         <div><strong>{isAuthenticated ? user.name : 'Find your community'}</strong><span>{isAuthenticated ? 'View your profile' : 'Sign in or join FaithNova'}</span></div><ArrowUpRight size={16} />
       </NavLink>

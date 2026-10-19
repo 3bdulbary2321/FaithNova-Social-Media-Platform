@@ -1,27 +1,26 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 import { normalizePost, normalizeUser } from '../api/normalizer';
-import { currentUser as fallbackUser } from '../mockData/currentUser';
-import { mockNotifications as initialNotifications } from '../mockData/notifications';
 import { sampleFeedPosts as initialPosts } from '../mockData/feedPosts';
 
 const AuthContext = createContext();
+const guestUser = { name: 'Guest', handle: '', avatar: '', id: null };
 
 export function AuthProvider({ children }) {
   // Load stored token and user from localStorage
   const [token, setToken] = useState(() => localStorage.getItem('faithnova_token') || null);
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('faithnova_user');
-      return saved ? normalizeUser(JSON.parse(saved)) : normalizeUser(fallbackUser);
+      const saved = localStorage.getItem('faithnova_token') && localStorage.getItem('faithnova_user');
+      return saved ? JSON.parse(saved) : guestUser;
     } catch {
-      return normalizeUser(fallbackUser);
+      return guestUser;
     }
   });
 
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [bookmarkedIds, setBookmarkedIds] = useState(['post-1', 'post-2']);
+  const [notifications, setNotifications] = useState([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState([]);
   
   // Feed state with live API posts
   const [posts, setPosts] = useState(() => initialPosts.map(p => normalizePost(p)));
@@ -32,7 +31,38 @@ export function AuthProvider({ children }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  const isAuthenticated = Boolean(token && user);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const openAuthDialog = useCallback(() => setIsAuthDialogOpen(true), []);
+  const closeAuthDialog = () => setIsAuthDialogOpen(false);
+
+  const isAuthenticated = Boolean(token && user?.id);
+  const requireAuth = () => {
+    if (isAuthenticated && localStorage.getItem('faithnova_token') === token) return true;
+    openAuthDialog();
+    return false;
+  };
+
+  useEffect(() => {
+    const resetSession = () => {
+      setToken(null); setUser(guestUser); setBookmarkedIds([]); setNotifications([]);
+      setIsCreateModalOpen(false);
+    };
+    const expired = () => { resetSession(); openAuthDialog(); };
+    const sync = event => {
+      if (event.key === 'faithnova_token' || event.key === null) {
+        const stored = localStorage.getItem('faithnova_token');
+        if (!stored) resetSession();
+        else setToken(stored);
+      }
+    };
+    window.addEventListener('faithnova_auth_expired', expired);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('faithnova_auth_expired', expired);
+      window.removeEventListener('storage', sync);
+    };
+  }, [openAuthDialog]);
+
   const unreadCount = notifications.filter((n) => n.isUnread).length;
 
   const showToast = (message) => {
@@ -44,6 +74,7 @@ export function AuthProvider({ children }) {
 
   // Fetch current user from /auth/me on mount if token exists
   useEffect(() => {
+    let active = true;
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('faithnova_token');
       if (!storedToken) {
@@ -53,7 +84,7 @@ export function AuthProvider({ children }) {
 
       try {
         const response = await api.get('/auth/me');
-        if (response.data && response.data.user) {
+        if (active && localStorage.getItem('faithnova_token') === storedToken && response.data?.user) {
           const authUser = normalizeUser(response.data.user);
           setUser(authUser);
           localStorage.setItem('faithnova_user', JSON.stringify(authUser));
@@ -61,11 +92,12 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.warn('Authentication token expired or unreachable, continuing with guest/cached session.');
       } finally {
-        setIsLoadingAuth(false);
+        if (active) setIsLoadingAuth(false);
       }
     };
 
     checkAuth();
+    return () => { active = false; };
   }, [token]);
 
   // Fetch categories from Laravel API
@@ -128,6 +160,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('faithnova_user', JSON.stringify(newUser));
       setToken(newToken);
       setUser(newUser);
+      closeAuthDialog();
 
       showToast(`Welcome back, ${newUser.name}! Fellowship session active.`);
       return { success: true, user: newUser };
@@ -149,6 +182,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('faithnova_user', JSON.stringify(newUser));
       setToken(newToken);
       setUser(newUser);
+      closeAuthDialog();
 
       showToast(`Welcome to FaithNova, ${newUser.name}!`);
       return { success: true, user: newUser };
@@ -156,6 +190,20 @@ export function AuthProvider({ children }) {
       const msg = error.response?.data?.message || 'Registration failed. Please check your inputs.';
       showToast(msg);
       return { success: false, error: msg, validationErrors: error.response?.data?.errors };
+    }
+  };
+
+  const loginWithGoogle = async credential => {
+    try {
+      const { data } = await api.post('/auth/google', { credential });
+      const newUser = normalizeUser(data.user);
+      localStorage.setItem('faithnova_token', data.token);
+      localStorage.setItem('faithnova_user', JSON.stringify(newUser));
+      setToken(data.token); setUser(newUser); closeAuthDialog();
+      showToast(`Welcome, ${newUser.name}!`);
+      return { success: true, user: newUser };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message || 'Google sign-in failed. Please try again.' };
     }
   };
 
@@ -169,13 +217,15 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('faithnova_token');
       localStorage.removeItem('faithnova_user');
       setToken(null);
-      setUser(normalizeUser(fallbackUser));
+      setUser(guestUser);
+      setBookmarkedIds([]); setNotifications([]); setIsCreateModalOpen(false);
       showToast('Logged out successfully.');
     }
   };
 
   // Update profile handler (supports avatar file upload)
   const updateProfile = async (formData) => {
+    if (!requireAuth()) return { success: false, error: 'Please sign in to continue.' };
     try {
       const response = await api.post('/user/profile', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -194,6 +244,7 @@ export function AuthProvider({ children }) {
 
   // Add new post (supports multipart file uploads)
   const addPost = async (postData) => {
+    if (!requireAuth()) return { success: false, error: 'Please sign in to continue.' };
     try {
       let createdPost = null;
 
@@ -244,16 +295,13 @@ export function AuthProvider({ children }) {
         return { success: true, post: createdPost };
       }
     } catch (error) {
-      console.warn('API post creation failed, falling back to local memory store.', error);
-      const fallbackPost = normalizePost(postData);
-      setPosts((prev) => [fallbackPost, ...prev]);
-      showToast(`Synthesis published to local session!`);
-      return { success: true, post: fallbackPost };
+      return { success: false, error: error.response?.data?.message || 'Could not publish your post. Please try again.' };
     }
   };
 
   // Toggle reaction on a post
   const toggleReaction = async (postId, type = 'like') => {
+    if (!requireAuth()) return null;
     try {
       const response = await api.post(`/posts/${postId}/reactions`, { type });
       const { user_reaction, stats } = response.data;
@@ -286,16 +334,18 @@ export function AuthProvider({ children }) {
   };
 
   const markAllNotificationsAsRead = () => {
+    if (!requireAuth()) return;
     setNotifications((prev) => prev.map((n) => ({ ...n, isUnread: false })));
   };
 
   const toggleBookmark = (postId) => {
+    if (!requireAuth()) return;
     setBookmarkedIds((prev) =>
       prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId]
     );
   };
 
-  const openCreateModal = () => setIsCreateModalOpen(true);
+  const openCreateModal = () => { if (requireAuth()) setIsCreateModalOpen(true); };
   const closeCreateModal = () => setIsCreateModalOpen(false);
 
   return (
@@ -306,6 +356,7 @@ export function AuthProvider({ children }) {
         setUser,
         isAuthenticated,
         isLoadingAuth,
+        isAuthDialogOpen, openAuthDialog, closeAuthDialog, requireAuth, loginWithGoogle,
         login,
         register,
         logout,

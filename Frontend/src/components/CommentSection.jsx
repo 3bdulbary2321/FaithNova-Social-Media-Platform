@@ -26,7 +26,7 @@ function CommentItem({
   onAddReply, 
   onReport 
 }) {
-  const { user } = useAuth();
+  const { user, requireAuth, isAuthenticated } = useAuth();
   const [likes, setLikes] = useState(comment.likes || 0);
   const [isLiked, setIsLiked] = useState(comment.isLiked || false);
   const [isReplying, setIsReplying] = useState(false);
@@ -34,12 +34,14 @@ function CommentItem({
   const [showReplies, setShowReplies] = useState(true);
 
   const handleLike = () => {
+    if (!requireAuth()) return;
     setIsLiked(!isLiked);
     setLikes(prev => (isLiked ? prev - 1 : prev + 1));
   };
 
   const handleReplySubmit = (e) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     if (!replyText.trim()) return;
 
     onAddReply(comment.id, {
@@ -128,7 +130,7 @@ function CommentItem({
 
             {/* Reply Toggle */}
             <button
-              onClick={() => setIsReplying(!isReplying)}
+              onClick={() => { if (requireAuth()) setIsReplying(!isReplying); }}
               className={`flex items-center gap-1 transition-colors ${
                 isReplying
                   ? 'text-indigo-600 dark:text-indigo-400 font-semibold'
@@ -165,11 +167,11 @@ function CommentItem({
         </div>
 
         {/* Inline Reply Input Form */}
-        {isReplying && (
+        {isReplying && isAuthenticated && (
           <form onSubmit={handleReplySubmit} className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in">
             <div className="flex items-start gap-2.5">
               <img
-                src={user.avatar}
+                src={user.avatar || undefined}
                 alt={user.name}
                 className="w-7 h-7 rounded-full object-cover ring-1 ring-amber-400 flex-shrink-0 mt-0.5"
               />
@@ -229,7 +231,7 @@ function CommentItem({
 }
 
 export default function CommentSection({ comments = [], onAddComment }) {
-  const { user, showToast } = useAuth();
+  const { user, showToast, requireAuth, isAuthenticated } = useAuth();
   const [commentList, setCommentList] = useState(comments);
   const [newComment, setNewComment] = useState('');
   const [reportTarget, setReportTarget] = useState(null);
@@ -238,6 +240,7 @@ export default function CommentSection({ comments = [], onAddComment }) {
   // Add top-level comment
   const handleTopLevelSubmit = (e) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     if (!newComment.trim()) return;
 
     const created = {
@@ -265,6 +268,7 @@ export default function CommentSection({ comments = [], onAddComment }) {
 
   // Add nested reply to any comment at any depth
   const handleAddReply = (targetCommentId, newReply) => {
+    if (!requireAuth()) return;
     const insertReplyRecursively = (items) => {
       return items.map((item) => {
         if (item.id === targetCommentId) {
@@ -289,6 +293,7 @@ export default function CommentSection({ comments = [], onAddComment }) {
 
   // Trigger Report Modal for a comment
   const handleOpenReport = (comment) => {
+    if (!requireAuth()) return;
     setReportTarget(comment);
     setIsReportOpen(true);
   };
@@ -315,13 +320,16 @@ export default function CommentSection({ comments = [], onAddComment }) {
         <form onSubmit={handleTopLevelSubmit} className="space-y-3">
           <div className="flex items-start gap-3">
             <img
-              src={user.avatar}
+              src={user.avatar || undefined}
               alt={user.name}
               className="w-9 h-9 rounded-full object-cover ring-2 ring-amber-400 flex-shrink-0"
             />
             <textarea
               rows={3}
               aria-label="Your comment"
+              readOnly={!isAuthenticated}
+              onFocus={event => { if (!isAuthenticated) { event.target.blur(); requireAuth(); } }}
+              onClick={() => { if (!isAuthenticated) requireAuth(); }}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Share your perspective or ask a thoughtful question…"
@@ -334,7 +342,7 @@ export default function CommentSection({ comments = [], onAddComment }) {
 
             <button
               type="submit"
-              disabled={!newComment.trim()}
+              disabled={isAuthenticated && !newComment.trim()}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-bold text-xs shadow-none active:scale-95 transition-all"
             >
               <Send className="w-3.5 h-3.5" />
@@ -374,6 +382,7 @@ export default function CommentSection({ comments = [], onAddComment }) {
           targetType="comment"
           targetTitle={reportTarget.text}
           onSubmitReport={async (data) => {
+            if (!requireAuth()) throw new Error('Please sign in to report a comment.');
             await api.post('/reports', { reportable_type: 'comment', reportable_id: reportTarget.id, reason: data.reason, notes: data.notes || null });
             showToast('Comment report sent to the moderation team.');
           }}

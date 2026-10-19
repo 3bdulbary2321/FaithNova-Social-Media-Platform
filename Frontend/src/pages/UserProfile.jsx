@@ -8,7 +8,7 @@ import Dialog from '../components/Dialog';
 
 export default function UserProfile() {
   const { handle } = useParams();
-  const { user: currentUser, posts, updateProfile, showToast, isAuthenticated } = useAuth();
+  const { user: currentUser, posts, updateProfile, showToast, isAuthenticated, requireAuth } = useAuth();
   const ownProfile = !handle || handle === currentUser.handle.replace('@', '');
   const author = posts.find(post => post.author.handle.replace('@', '') === handle)?.author;
   const user = ownProfile ? currentUser : author;
@@ -20,6 +20,7 @@ export default function UserProfile() {
   const published = posts.filter(post => post.author.handle === user.handle || post.author.name === user.name);
   const visible = tab === 'media' ? published.filter(post => post.media) : published;
   const share = async () => {
+    if (!requireAuth()) return;
     try { await navigator.clipboard.writeText(`${window.location.origin}/profile/${user.handle.replace('@', '')}`); showToast('Profile link copied.'); }
     catch { showToast('Could not copy the link. Please copy the page address.'); }
   };

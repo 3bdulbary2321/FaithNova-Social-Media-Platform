@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
   const { isDark, toggleTheme } = useTheme();
-  const { user, notifications, unreadCount, markAllNotificationsAsRead, openCreateModal, logout, isAuthenticated } = useAuth();
+  const { user, notifications, unreadCount, markAllNotificationsAsRead, openCreateModal, logout, isAuthenticated, requireAuth, openAuthDialog } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') || '');
@@ -38,11 +38,11 @@ export default function TopNavbar({ onToggleMobileNav, isMobileNavOpen }) {
         <div className="topbar-actions" ref={actionsRef}>
           <button className="button primary topbar-create" onClick={openCreateModal}><Plus size={17} />Create post</button>
           <button className="icon-button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} title={isDark ? 'Light mode' : 'Dark mode'}>{isDark ? <Sun size={19} /> : <Moon size={19} />}</button>
-          <div className="popover-anchor"><button className="icon-button notification-button" onClick={() => setPopover(popover === 'notifications' ? null : 'notifications')} aria-label={`Notifications, ${unreadCount} unread`} aria-expanded={popover === 'notifications'}><Bell size={19} />{unreadCount > 0 && <span className="notification-dot" />}</button>
+          <div className="popover-anchor"><button className="icon-button notification-button" onClick={() => { if (requireAuth()) setPopover(popover === 'notifications' ? null : 'notifications'); }} aria-label={`Notifications, ${unreadCount} unread`} aria-expanded={popover === 'notifications'}><Bell size={19} />{unreadCount > 0 && <span className="notification-dot" />}</button>
             {popover === 'notifications' && <section className="popover notifications-panel" aria-label="Notifications"><div className="popover-heading"><h2>Notifications</h2><button className="text-button" onClick={markAllNotificationsAsRead}>Mark all read</button></div><div className="notification-list">{notifications.map(item => <div className={`notification-item ${item.isUnread ? 'unread' : ''}`} key={item.id}><Avatar src={item.actor.avatar} name={item.actor.name} /><div><p><strong>{item.actor.name}</strong> {item.actionText} “{item.targetTitle}”</p><small>{item.time}</small></div></div>)}</div></section>}
           </div>
           <div className="popover-anchor"><button className="icon-button account-button" aria-label="Account menu" aria-expanded={popover === 'profile'} onClick={() => setPopover(popover === 'profile' ? null : 'profile')}>{isAuthenticated ? <Avatar src={user.avatar} name={user.name} /> : <User size={20} />}</button>
-            {popover === 'profile' && <div className="popover account-panel"><p className="eyebrow">{isAuthenticated ? user.name : 'Welcome to FaithNova'}</p><Link to="/profile" onClick={() => setPopover(null)}><User size={17} />Your profile</Link><Link to="/saved" onClick={() => setPopover(null)}><Bookmark size={17} />Saved posts</Link>{isAuthenticated ? <button onClick={() => { logout(); setPopover(null); }}><LogOut size={17} />Sign out</button> : <Link to="/auth" onClick={() => setPopover(null)}><LogOut size={17} />Sign in / Create account</Link>}</div>}
+            {popover === 'profile' && <div className="popover account-panel"><p className="eyebrow">{isAuthenticated ? user.name : 'Welcome to FaithNova'}</p><Link to="/profile" onClick={() => setPopover(null)}><User size={17} />Your profile</Link><Link to="/saved" onClick={() => setPopover(null)}><Bookmark size={17} />Saved posts</Link>{isAuthenticated ? <button onClick={() => { logout(); setPopover(null); }}><LogOut size={17} />Sign out</button> : <button onClick={() => { setPopover(null); openAuthDialog(); }}><LogOut size={17} />Sign in / Create account</button>}</div>}
           </div>
         </div>
       </div>

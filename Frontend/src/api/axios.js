@@ -31,7 +31,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Clear token if expired or invalid
       const currentToken = localStorage.getItem('faithnova_token');
-      if (currentToken) {
+      if (currentToken && error.config?.headers?.Authorization === `Bearer ${currentToken}`) {
         localStorage.removeItem('faithnova_token');
         localStorage.removeItem('faithnova_user');
         window.dispatchEvent(new Event('faithnova_auth_expired'));
