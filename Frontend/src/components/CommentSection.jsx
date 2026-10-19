@@ -1,3 +1,4 @@
+import api from '../api/axios';
 import React, { useState } from 'react';
 import { 
   ShieldCheck, 
@@ -70,7 +71,7 @@ function CommentItem({
     <div className={`group/item ${depth > 0 ? 'mt-3 pl-3 sm:pl-5 border-l-2 border-indigo-200/60 dark:border-indigo-900/50' : 'pt-4'}`}>
       
       {/* Comment Card */}
-      <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+      <div className="p-3 sm:p-4 rounded-2xl bg-[var(--surface)] border border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
         
         {/* Comment Header */}
         <div className="flex items-center justify-between gap-2 mb-2">
@@ -86,18 +87,18 @@ function CommentItem({
                   {comment.author.name}
                 </span>
                 {comment.author.roleBadge && (
-                  <span className="px-1.5 py-0.2 text-[9px] font-semibold rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50 font-mono">
+                  <span className="px-1.5 py-0.2 text-xs font-semibold rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50 font-sans">
                     {comment.author.roleBadge}
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                 {comment.author.institution}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 text-[10px] text-slate-400 flex-shrink-0">
+          <div className="flex items-center gap-1 text-xs text-slate-400 flex-shrink-0">
             <Clock className="w-3 h-3" />
             <span>{comment.timestamp}</span>
           </div>
@@ -122,7 +123,7 @@ function CommentItem({
               }`}
             >
               <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="text-[11px] font-mono">{likes}</span>
+              <span className="text-xs font-sans">{likes}</span>
             </button>
 
             {/* Reply Toggle */}
@@ -135,7 +136,7 @@ function CommentItem({
               }`}
             >
               <Reply className="w-3.5 h-3.5" />
-              <span className="text-[11px]">Reply</span>
+              <span className="text-xs">Reply</span>
             </button>
 
           </div>
@@ -154,7 +155,7 @@ function CommentItem({
             {hasReplies && (
               <button
                 onClick={() => setShowReplies(!showReplies)}
-                className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1 hover:underline ml-1"
+                className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1 hover:underline ml-1"
               >
                 <span>{comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}</span>
                 {showReplies ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -228,7 +229,7 @@ function CommentItem({
 }
 
 export default function CommentSection({ comments = [], onAddComment }) {
-  const { user } = useAuth();
+  const { user, showToast } = useAuth();
   const [commentList, setCommentList] = useState(comments);
   const [newComment, setNewComment] = useState('');
   const [reportTarget, setReportTarget] = useState(null);
@@ -283,6 +284,7 @@ export default function CommentSection({ comments = [], onAddComment }) {
     };
 
     setCommentList(prev => insertReplyRecursively(prev));
+    onAddComment?.({ ...newReply, parentId: targetCommentId });
   };
 
   // Trigger Report Modal for a comment
@@ -294,39 +296,19 @@ export default function CommentSection({ comments = [], onAddComment }) {
   return (
     <div className="space-y-5">
       
-      {/* 1. Respectful Discussion Reminder Banner (Mandatory Requirement) */}
-      <div className="p-3.5 sm:p-4 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-slate-50 to-indigo-500/10 dark:from-amber-950/25 dark:via-slate-900/50 dark:to-indigo-950/25 dark:border-amber-500/30 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex-shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 font-mono">
-                Academic Discourse Charter
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
-              "Remember to keep discussions respectful and backed by knowledge."
-            </p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block">
-              Support scientific assertions with peer-reviewed literature, approach scriptural exegesis with context, and avoid ad hominem.
-            </p>
-          </div>
-        </div>
-      </div>
+      <div className="discussion-intro"><h2>Join the conversation</h2><p>Be curious, be respectful, and support your perspective with sources.</p></div>
 
       {/* 2. Top-Level Comment Submission Form */}
-      <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-slate-900/60 shadow-sm space-y-3">
+      <div className="p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-[var(--surface)] shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-indigo-500" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-              Peer Review & Inquiries ({commentList.length})
+              Discussion ({commentList.length})
             </h3>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono">
-            Markdown & DOI Supported
+          <span className="text-xs text-slate-400 font-sans">
+            All perspectives welcome
           </span>
         </div>
 
@@ -339,27 +321,24 @@ export default function CommentSection({ comments = [], onAddComment }) {
             />
             <textarea
               rows={3}
+              aria-label="Your comment"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Contribute a scholarly peer inquiry, exegesis critique, or empirical verification..."
+              placeholder="Share your perspective or ask a thoughtful question…"
               className="w-full p-3 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:border-indigo-500 resize-none placeholder:text-slate-400"
             />
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-2 text-[10px] text-slate-400">
-              <span className="hover:text-indigo-500 cursor-pointer">+ Cite Verse</span>
-              <span>•</span>
-              <span className="hover:text-indigo-500 cursor-pointer">+ Add DOI Link</span>
-            </div>
+            <span className="text-xs text-slate-400">Include sources when you can.</span>
 
             <button
               type="submit"
               disabled={!newComment.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-bold text-xs shadow-md shadow-indigo-600/25 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-bold text-xs shadow-none active:scale-95 transition-all"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Submit Inquiry</span>
+              <span>Post comment</span>
             </button>
           </div>
         </form>
@@ -394,8 +373,9 @@ export default function CommentSection({ comments = [], onAddComment }) {
           }}
           targetType="comment"
           targetTitle={reportTarget.text}
-          onSubmitReport={(data) => {
-            console.log('Reported comment:', data);
+          onSubmitReport={async (data) => {
+            await api.post('/reports', { reportable_type: 'comment', reportable_id: reportTarget.id, reason: data.reason, notes: data.notes || null });
+            showToast('Comment report sent to the moderation team.');
           }}
         />
       )}
