@@ -16,7 +16,7 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
     setBusy(true); setError('');
     try {
       const result = registering
-        ? await register({ name: data.get('name').trim(), username: data.get('username').trim(), email: data.get('email').trim(), password: data.get('password') })
+        ? await register({ name: data.get('name').trim(), username: data.get('username').trim(), email: data.get('email').trim(), password: data.get('password'), bio: data.get('institution')?.trim() || '' })
         : await login({ login: data.get('email').trim(), password: data.get('password') });
       if (result.success) onSuccess?.();
       else setError(result.error);
@@ -27,9 +27,10 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
     <GoogleSignIn onSuccess={onSuccess} disabled={busy} />
     <div className="auth-divider"><span>or continue with email</span></div>
     <form key={mode} className="editor-form" onSubmit={submit}>
-      {registering && <><label>Full name<input name="name" autoComplete="name" required maxLength={100} /></label><label>Username<input name="username" autoComplete="username" pattern="[a-zA-Z0-9_]+" minLength={3} maxLength={30} required /></label></>}
+      {registering && <><label>Full name<input name="name" autoComplete="name" required maxLength={100} /></label><label>Username<input name="username" autoComplete="username" pattern="[a-zA-Z0-9_]+" minLength={3} maxLength={30} required /></label><label>Institution <span className="optional">Optional</span><input name="institution" autoComplete="organization" placeholder="University or organization" /></label></>}
       <label>{registering ? 'Email address' : 'Email or username'}<input name="email" type={registering ? 'email' : 'text'} autoComplete={registering ? 'email' : 'username'} placeholder="you@example.com" required /></label>
       <label>Password<div className="password-field"><input name="password" type={visible ? 'text' : 'password'} autoComplete={registering ? 'new-password' : 'current-password'} minLength={registering ? 8 : undefined} required /><button type="button" className="icon-button" aria-label={visible ? 'Hide password' : 'Show password'} onClick={() => setVisible(!visible)}>{visible ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></label>
+      {registering && <label className="checkbox-label"><input type="checkbox" required /><span>I agree to participate respectfully and cite my sources.</span></label>}
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="button primary" disabled={busy}>{busy ? 'Please wait…' : registering ? 'Create account' : 'Sign in with email'}<ArrowUpRight size={17} /></button>
     </form>

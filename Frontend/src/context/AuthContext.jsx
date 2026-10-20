@@ -12,7 +12,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('faithnova_token') && localStorage.getItem('faithnova_user');
-      return saved ? JSON.parse(saved) : guestUser;
+      const cached = saved ? JSON.parse(saved) : null;
+      return cached?.id ? cached : guestUser;
     } catch {
       return guestUser;
     }
@@ -328,7 +329,7 @@ export function AuthProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      console.warn('Could not toggle reaction via API, falling back to local toggle.');
+      console.warn('Could not save reaction via API.');
       return null;
     }
   };
