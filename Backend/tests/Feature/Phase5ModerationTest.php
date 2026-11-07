@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
-use App\Models\Comment;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\Report;
@@ -19,8 +18,11 @@ class Phase5ModerationTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $moderator;
+
     protected User $regularUser;
+
     protected Category $category;
 
     protected function setUp(): void
@@ -75,75 +77,6 @@ class Phase5ModerationTest extends TestCase
                     'total_published_posts_count',
                 ],
             ]);
-    }
-
-    /**
-     * Test pending posts queue returns only pending posts.
-     */
-    public function test_pending_posts_queue(): void
-    {
-        Post::create([
-            'user_id' => $this->regularUser->id,
-            'category_id' => $this->category->id,
-            'title' => 'Published Article',
-            'content' => 'Already published content.',
-            'status' => 'published',
-        ]);
-
-        $pendingPost = Post::create([
-            'user_id' => $this->regularUser->id,
-            'category_id' => $this->category->id,
-            'title' => 'Submitted Draft for Review',
-            'content' => 'Seeking academic peer review.',
-            'status' => 'pending',
-        ]);
-
-        Sanctum::actingAs($this->moderator);
-        $response = $this->getJson('/api/moderation/posts/pending');
-
-        $response->assertStatus(200)
-            ->assertJsonPath('status', 'success')
-            ->assertJsonCount(1, 'data.data')
-            ->assertJsonPath('data.data.0.id', $pendingPost->id)
-            ->assertJsonPath('data.data.0.title', 'Submitted Draft for Review');
-    }
-
-    /**
-     * Test approving and rejecting pending posts.
-     */
-    public function test_update_post_moderation_status(): void
-    {
-        $post = Post::create([
-            'user_id' => $this->regularUser->id,
-            'category_id' => $this->category->id,
-            'title' => 'Cosmological Boundary State',
-            'content' => 'Mathematical formulation of the initial state.',
-            'status' => 'pending',
-        ]);
-
-        Sanctum::actingAs($this->moderator);
-
-        // Approve post
-        $approved = $this->patchJson("/api/moderation/posts/{$post->id}/status", [
-            'status' => 'published',
-        ]);
-
-        $approved->assertStatus(200)
-            ->assertJsonPath('status', 'success')
-            ->assertJsonPath('data.status', 'published');
-
-        $this->assertEquals('published', $post->fresh()->status);
-
-        // Reject post
-        $rejected = $this->patchJson("/api/moderation/posts/{$post->id}/status", [
-            'status' => 'rejected',
-            'feedback' => 'Requires additional empirical citations.',
-        ]);
-
-        $rejected->assertStatus(200)
-            ->assertJsonPath('data.status', 'rejected');
-
-        $this->assertEquals('rejected', $post->fresh()->status);
     }
 
     /**

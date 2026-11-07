@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\PostResource;
 use App\Http\Resources\ReportResource;
 use App\Http\Resources\UserResource;
 use App\Models\Category;
@@ -177,46 +176,6 @@ class ModerationController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => "Post #{$post->id} deleted.",
-        ]);
-    }
-
-    /**
-     * Retrieve a paginated queue of pending submissions awaiting review.
-     */
-    public function pendingPosts(Request $request): JsonResponse
-    {
-        $perPage = (int) $request->input('per_page', 10);
-
-        $posts = Post::where('status', 'pending')
-            ->with(['user', 'category', 'media'])
-            ->withCount(['comments', 'reactions', 'likes', 'insightfuls'])
-            ->latest('id')
-            ->paginate($perPage);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => PostResource::collection($posts)->response()->getData(true),
-        ]);
-    }
-
-    /**
-     * Update the moderation status of a post ('published' or 'rejected').
-     */
-    public function updatePostStatus(Request $request, Post $post): JsonResponse
-    {
-        $validated = $request->validate([
-            'status' => ['required', 'string', 'in:published,rejected'],
-            'feedback' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        $post->update([
-            'status' => $validated['status'],
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "Post #{$post->id} status updated to '{$validated['status']}'.",
-            'data' => new PostResource($post->fresh(['user', 'category', 'media'])->loadCount(['comments', 'reactions', 'likes', 'insightfuls'])),
         ]);
     }
 

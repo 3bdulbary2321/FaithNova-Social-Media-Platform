@@ -136,10 +136,6 @@ Route::middleware(['auth:sanctum', 'role:admin,moderator'])->prefix('moderation'
     Route::get('/stats', [ModerationController::class, 'stats']);
     Route::get('/overview', [ModerationController::class, 'overview']);
 
-    // Submissions Review Queue
-    Route::get('/posts/pending', [ModerationController::class, 'pendingPosts']);
-    Route::match(['patch', 'put'], '/posts/{post}/status', [ModerationController::class, 'updatePostStatus']);
-
     // Content Reports Queue & Resolution
     Route::get('/reports', [ModerationController::class, 'reports']);
     Route::post('/reports/{report}/resolve', [ModerationController::class, 'resolveReport']);
