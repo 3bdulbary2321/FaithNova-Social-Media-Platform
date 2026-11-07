@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-soft: var(--surface-soft);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+}
+
+:root {
+  color-scheme: light;
+  --canvas: #f6f7fa;
+  --surface: #ffffff;
+  --surface-soft: #f1f2f6;
+  --ink: #23253a;
+  --muted: #6a6f84;
+  --line: #e5e7ee;
+  --accent: #6853b2;
+  --accent-soft: #eeebf8;
+  --on-accent: #ffffff;
+  --danger: #c2413b;
+  --danger-soft: #fbeceb;
+  --success: #2f8a5b;
+  --success-soft: #e7f5ed;
+  --warn: #b7791f;
+  --warn-soft: #fbf3e4;
+  --series-1: #6853b2;
+  --series-2: #e07a3f;
+  --series-3: #2f9e8f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --canvas: #12141b;
+    --surface: #1b1e28;
+    --surface-soft: #242836;
+    --ink: #ececf4;
+    --muted: #a2a7bc;
+    --line: #2f3342;
+    --accent: #a196db;
+    --accent-soft: #2c2748;
+    --on-accent: #14121f;
+    --danger: #ef7d76;
+    --danger-soft: #3a2224;
+    --success: #6fcf9b;
+    --success-soft: #1d3328;
+    --warn: #e6b35c;
+    --warn-soft: #362c1a;
+    --series-1: #a196db;
+    --series-2: #f0a06e;
+    --series-3: #5cc9b8;
+  }
+}
+
+html, body, #root { min-height: 100%; }
+body { margin: 0; background: var(--canvas); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--font-heading); }
+
+@utility card { @apply rounded-2xl border border-line bg-surface; }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
+@utility btn-primary { @apply btn bg-accent text-on-accent hover:opacity-90; }
+@utility btn-ghost { @apply btn border border-line bg-surface text-ink hover:bg-soft; }
+@utility btn-danger { @apply btn bg-danger text-on-accent hover:opacity-90; }
+@utility input { @apply w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20; }
+@utility chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }

@@ -136,7 +136,7 @@ class DatabaseSeeder extends Seeder
             'category_id' => $categories['biology']->id,
             'title' => 'Cellular Hydrodynamics: Water as the Indispensable Matrix for Biological Life',
             'content' => 'Water possesses extraordinary thermodynamic anomalies—including its high specific heat capacity, anomalous density peak at 4°C, and exceptional dielectric constant—which make it the uniquely suited chemical substrate for folding proteins, stabilizing lipid bilayer membranes, and enabling metabolic proton transfers. Life on Earth is fundamentally aqueous down to the quantum scale.',
-            'religious_reference' => "Surah An-Nur (24:45): \"And God has created every animal from water: of them there are some that creep on their bellies; some that walk on two legs; and some that walk on four. God creates what He wills: for truly God has power over all things.\"",
+            'religious_reference' => 'Surah An-Nur (24:45): "And God has created every animal from water: of them there are some that creep on their bellies; some that walk on two legs; and some that walk on four. God creates what He wills: for truly God has power over all things."',
             'scientific_reference' => "Nature Reviews Molecular Cell Biology (2023) — DOI: 10.1038/s41580-023-00592-z\nStructural biology investigations reveal that hydration shells are not passive bystanders, but active mechanical drivers of catalytic enzyme kinetics and macromolecular conformational states.",
             'status' => 'published',
         ]);
@@ -146,7 +146,7 @@ class DatabaseSeeder extends Seeder
             'category_id' => $categories['physics']->id,
             'title' => 'Subatomic Fine-Tuning, Cosmological Constants, and Ontological Contingency',
             'content' => 'The cosmological constant Lambda (Λ) is famously fine-tuned to roughly 1 part in 10^120. If the strong nuclear force were altered by mere percentiles, stable nucleosynthesis of carbon and oxygen inside stellar furnaces would be thermodynamically precluded. Physical constants exhibit precision that invites profound metaphysical inquiries regarding contingency and design.',
-            'religious_reference' => "Surah Al-Mulk (67:3-4): \"[He] who created seven heavens in layers. You do not see in the creation of the Most Merciful any inconsistency. So return your vision to the sky, do you see any breaks? Then return your vision twice again, your vision will return to you humbled while it is fatigued.\"",
+            'religious_reference' => 'Surah Al-Mulk (67:3-4): "[He] who created seven heavens in layers. You do not see in the creation of the Most Merciful any inconsistency. So return your vision to the sky, do you see any breaks? Then return your vision twice again, your vision will return to you humbled while it is fatigued."',
             'scientific_reference' => "Reviews of Modern Physics — \"The Fine-Tuning of the Universe for Intelligent Life\"\nMartin Rees & Steven Weinberg: Calculations regarding the anthropic bounds on the cosmological constant demonstrate an extremely narrow viability corridor for galaxy formation and biogenesis.",
             'status' => 'published',
         ]);
@@ -156,7 +156,7 @@ class DatabaseSeeder extends Seeder
             'category_id' => $categories['history']->id,
             'title' => 'Al-Hasan Ibn al-Haytham, the Camera Obscura, and the Empirical Scientific Revolution',
             'content' => 'In his monumental Kitab al-Manazir (Book of Optics, c. 1021 CE), Ibn al-Haytham overturned Ptolemaic and Euclidean emission theories of vision through controlled optical experimentation. He established systematic falsification centuries before Bacon and Descartes, consciously motivated by theological convictions that human sensory perception requires rigorous empirical verification.',
-            'religious_reference' => "Classical Scholar Quote (Ibn al-Haytham, Kitab al-Manazir Prologue): \"The seeker after the truth is not one who studies the writings of the ancients and puts his trust in them, but rather the one who suspects his faith in them and questions what he gathers from them, following argument and demonstration rather than human authority.\"",
+            'religious_reference' => 'Classical Scholar Quote (Ibn al-Haytham, Kitab al-Manazir Prologue): "The seeker after the truth is not one who studies the writings of the ancients and puts his trust in them, but rather the one who suspects his faith in them and questions what he gathers from them, following argument and demonstration rather than human authority."',
             'scientific_reference' => "Nature Photonics (2015) — \"Ibn al-Haytham: Father of Modern Optics\"\nHistorical physics assessment demonstrating that Ibn al-Haytham's mathematical formulations of ray reflection and refraction laid the direct groundwork for Fermat's principle of least time.",
             'status' => 'pending',
         ]);
@@ -273,5 +273,12 @@ class DatabaseSeeder extends Seeder
             'notes' => 'Sample moderation flag for comment review verification.',
             'status' => 'dismissed',
         ]);
+
+        // ---------------------------------------------------------
+        // 8. Seed Follows (for the moderation dashboard rankings)
+        // ---------------------------------------------------------
+        $marcus->followers()->syncWithoutDetaching([$amina->id, $julian->id, $moderator->id]);
+        $amina->followers()->syncWithoutDetaching([$julian->id, $marcus->id]);
+        $moderator->followers()->syncWithoutDetaching([$marcus->id]);
     }
 }

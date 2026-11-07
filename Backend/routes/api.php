@@ -3,7 +3,10 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\ModerationController;
+use App\Http\Controllers\ModerationUserController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\ReportController;
@@ -103,6 +106,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Content Reporting (Polymorphic: Posts & Comments)
     Route::post('/reports', [ReportController::class, 'store']);
+
+    // Followers
+    Route::post('/users/{user}/follow', [FollowController::class, 'toggle']);
+
+    // Personal Notifications (moderator messages, report outcomes, announcements)
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/read', [NotificationController::class, 'markRead']);
 });
 
 // =========================================================================
@@ -122,8 +132,9 @@ Route::middleware(['auth:sanctum', 'role:admin,moderator'])->prefix('moderation'
         ]);
     });
 
-    // Dashboard Aggregate Statistics
+    // Dashboard Aggregate Statistics & Charts
     Route::get('/stats', [ModerationController::class, 'stats']);
+    Route::get('/overview', [ModerationController::class, 'overview']);
 
     // Submissions Review Queue
     Route::get('/posts/pending', [ModerationController::class, 'pendingPosts']);
@@ -132,6 +143,19 @@ Route::middleware(['auth:sanctum', 'role:admin,moderator'])->prefix('moderation'
     // Content Reports Queue & Resolution
     Route::get('/reports', [ModerationController::class, 'reports']);
     Route::post('/reports/{report}/resolve', [ModerationController::class, 'resolveReport']);
+
+    // Remove any post directly
+    Route::delete('/posts/{post}', [ModerationController::class, 'destroyPost']);
+
+    // Member Directory & Blocking
+    Route::get('/users', [ModerationUserController::class, 'index']);
+    Route::post('/users/{user}/block', [ModerationUserController::class, 'block']);
+    Route::post('/users/{user}/unblock', [ModerationUserController::class, 'unblock']);
+
+    // Staff Inbox (user reports arrive here) & Outgoing Messages
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/send', [NotificationController::class, 'send']);
 });
 
 // Category Administration (Admin only)

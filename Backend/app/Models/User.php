@@ -4,7 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -51,6 +53,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'blocked_at' => 'datetime',
         ];
     }
 
@@ -100,5 +103,49 @@ class User extends Authenticatable
     public function isModerator(): bool
     {
         return $this->role === 'moderator' || $this->role === 'admin';
+    }
+
+    /**
+     * Get the accounts that follow this user.
+     */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')->withTimestamps();
+    }
+
+    /**
+     * Get the accounts this user follows.
+     */
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')->withTimestamps();
+    }
+
+    /**
+     * Check if the account has been blocked by moderation staff.
+     */
+    public function isBlocked(): bool
+    {
+        return $this->blocked_at !== null;
+    }
+
+    /**
+     * Limit the query to users whose API token was used within the given window.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeActiveWithin(Builder $query, int $minutes = 15): void
+    {
+        $query->whereHas('tokens', fn (Builder $tokens) => $tokens->where('last_used_at', '>=', now()->subMinutes($minutes)));
+    }
+
+    /**
+     * Add a `last_active_at` column holding the most recent token use.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeWithLastActiveAt(Builder $query): void
+    {
+        $query->withMax('tokens as last_active_at', 'last_used_at');
     }
 }

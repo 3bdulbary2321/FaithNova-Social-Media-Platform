@@ -6,7 +6,10 @@ use App\Http\Requests\Report\StoreReportRequest;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Report;
+use App\Models\User;
+use App\Notifications\ReportSubmitted;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Notification;
 
 class ReportController extends Controller
 {
@@ -35,6 +38,7 @@ class ReportController extends Controller
         $targetExists = $targetClass::where('id', $reportableId)->exists();
         if (! $targetExists) {
             $modelName = class_basename($targetClass);
+
             return response()->json([
                 'status' => 'error',
                 'message' => "The target {$modelName} #{$reportableId} does not exist.",
@@ -63,6 +67,12 @@ class ReportController extends Controller
             'notes' => $validated['notes'] ?? null,
             'status' => 'pending',
         ]);
+
+        $staff = User::whereIn('role', ['admin', 'moderator'])
+            ->whereNull('blocked_at')
+            ->where('id', '!=', $user->id)
+            ->get();
+        Notification::send($staff, new ReportSubmitted($report->setRelation('reporter', $user)));
 
         return response()->json([
             'status' => 'success',

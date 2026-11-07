@@ -63,6 +63,8 @@ class AuthController extends Controller
             ]);
         }
 
+        $this->ensureNotBlocked($user);
+
         $deviceName = $validated['device_name'] ?? 'faithnova_spa_client';
         $token = $user->createToken($deviceName)->plainTextToken;
 
@@ -109,6 +111,8 @@ class AuthController extends Controller
             return $user;
         });
 
+        $this->ensureNotBlocked($user);
+
         return response()->json([
             'status' => 'success',
             'token' => $user->createToken('faithnova_spa_client')->plainTextToken,
@@ -145,5 +149,15 @@ class AuthController extends Controller
             'status' => 'success',
             'message' => 'Token revoked successfully. Logged out.',
         ]);
+    }
+
+    /**
+     * Refuse to issue tokens to accounts blocked by moderation staff.
+     */
+    protected function ensureNotBlocked(User $user): void
+    {
+        if ($user->isBlocked()) {
+            abort(403, 'This account has been blocked by the moderation team.');
+        }
     }
 }
