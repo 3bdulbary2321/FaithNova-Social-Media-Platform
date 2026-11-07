@@ -37,8 +37,6 @@ export const moderation = {
   reports: params => api.get('/moderation/reports', { params }).then(r => r.data.data),
   resolveReport: (id, body) => api.post(`/moderation/reports/${id}/resolve`, body).then(r => r.data),
   deletePost: (id, body) => api.delete(`/moderation/posts/${id}`, { data: body }).then(r => r.data),
-  pendingPosts: params => api.get('/moderation/posts/pending', { params }).then(r => r.data.data),
-  setPostStatus: (id, status) => api.patch(`/moderation/posts/${id}/status`, { status }).then(r => r.data),
   users: params => api.get('/moderation/users', { params }).then(r => r.data.data),
   blockUser: (id, reason) => api.post(`/moderation/users/${id}/block`, { reason }).then(r => r.data),
   unblockUser: id => api.post(`/moderation/users/${id}/unblock`).then(r => r.data),

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Bell, ClipboardList, Flag, LayoutDashboard, LogOut, Menu, ShieldCheck, Users, X } from 'lucide-react';
+import { Bell, Flag, LayoutDashboard, LogOut, Menu, ShieldCheck, Users, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { moderation } from '../api/client';
 import Avatar from './Avatar';
@@ -8,7 +8,6 @@ import Avatar from './Avatar';
 const NAV = [
   { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/reports', label: 'Reports', icon: Flag },
-  { to: '/queue', label: 'Post queue', icon: ClipboardList },
   { to: '/users', label: 'Users', icon: Users },
   { to: '/notifications', label: 'Notifications', icon: Bell },
 ];
